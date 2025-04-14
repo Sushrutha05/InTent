@@ -8,7 +8,11 @@ plugins {
 android {
     namespace = "com.example.student_dating_app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "26.3.11579264"
+
+    buildFeatures {
+        buildConfig = true // Enable BuildConfig generation
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -20,10 +24,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.student_dating_app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -32,8 +33,6 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -42,3 +41,19 @@ android {
 flutter {
     source = "../.."
 }
+
+// Apply the Google services plugin
+/*apply(plugin = "com.google.gms.google-services")
+
+dependencies {
+    // Firebase SDK for Flutter (you can add more Firebase packages depending on the features you need)
+    implementation("com.google.firebase:firebase-auth:21.0.1")  // For Firebase Authentication
+
+    // Other Firebase dependencies if needed
+    // implementation 'com.google.firebase:firebase-firestore:24.0.3'
+    // implementation 'com.google.firebase:firebase-database:20.0.3'
+}
+*/
+
+
+
