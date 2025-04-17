@@ -15,9 +15,15 @@ class MyButton extends StatelessWidget{
         height: 50,
         width: 400,
         child: Center(
-          child: Text(
-            "Sign In",
-            style: TextStyle(color: Colors.white, fontSize: 30),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Log In",
+                style: TextStyle(color: Colors.white, fontSize: 30),
+              ),const SizedBox(width: 20),
+              Icon(Icons.login, color: Colors.white,)
+            ],
           ),
         ),
 

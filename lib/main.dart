@@ -1,6 +1,8 @@
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:student_dating_app/pages/signin_page.dart';
 import 'pages/login_page.dart';
+import 'pages/signin_page.dart';
 
 
 void main() async {
@@ -15,7 +17,8 @@ class MyApp extends StatelessWidget{
   Widget build(BuildContext context) {
       return MaterialApp(
           debugShowCheckedModeBanner: false,
-          home: LoginPage(),
+          //home: LoginPage()
+        home: SignInPage()
       );
   }
 }

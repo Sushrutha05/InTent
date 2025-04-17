@@ -28,10 +28,6 @@ class LoginPage extends StatelessWidget{
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 50),
-                Icon(
-                    Icons.lock,
-                    size: 60
-                ),
 
                 //Welcome
                 Text(
@@ -121,7 +117,7 @@ class LoginPage extends StatelessWidget{
                     Text("Not a member?"),
                     const SizedBox(width: 10),
                     Text(
-                        "Register Now",
+                        "Sign In",
                         style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 18)
                     ),
                   ],
