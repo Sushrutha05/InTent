@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:student_dating_app/components/my_button.dart';
 import 'package:student_dating_app/components/my_textfield.dart';
 import 'package:student_dating_app/components/square_tile.dart';
 import 'package:student_dating_app/pages/home_page.dart';
+import 'package:student_dating_app/pages/onboard_page.dart';
 import 'package:student_dating_app/pages/signin_page.dart';
 
 class LoginPage extends StatelessWidget{
@@ -69,8 +69,19 @@ class LoginPage extends StatelessWidget{
                 //Sign in
 
                 const SizedBox(height: 10,),
-                MyButton(
-                  onTap: signUserIn,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 10),
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),color: Colors.black,),
+                  child: GestureDetector(
+                    onTap: (){
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => HomePage()));
+                    },
+                    child: Text(
+                        "Log In",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)
+                    ),
+                  ),
                 ),
 
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:student_dating_app/components/my_button.dart';
 import 'package:student_dating_app/components/my_textfield.dart';
 import 'package:student_dating_app/components/square_tile.dart';
 import 'package:student_dating_app/pages/onboard_page.dart';
@@ -52,7 +51,7 @@ class SignInPage extends StatelessWidget{
 
                   const SizedBox(height: 20),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 175, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 10),
                     decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),color: Colors.black,),
 
                     child:

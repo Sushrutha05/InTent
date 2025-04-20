@@ -5,11 +5,15 @@ class HomePage extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return
+    return Scaffold(
+      appBar: AppBar(title: Text("The HomePage"),automaticallyImplyLeading: false,),
+    body:
       Center(
+        
         child: SafeArea(
-        child: Text("NOT IMPLEMENTED YET", style: TextStyle(fontSize: 52),),
+        child: Text("NOT IMPLEMENTED YET :(", style: TextStyle(fontSize: 52),),
             ),
-      );
+      ),
+    );
   }
 }

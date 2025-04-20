@@ -1,8 +1,6 @@
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'pages/login_page.dart';
-import 'pages/signin_page.dart';
-import 'pages/onboard_page.dart';
 
 
 void main() async {
@@ -17,10 +15,7 @@ class MyApp extends StatelessWidget{
   Widget build(BuildContext context) {
       return MaterialApp(
           debugShowCheckedModeBanner: false,
-          //home: OnboardingScreen(),
           home: LoginPage()
-          //home: SignInPage()
-
       );
   }
 }
