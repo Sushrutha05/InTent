@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:student_dating_app/components/my_button.dart';
 import 'package:student_dating_app/components/my_textfield.dart';
 import 'package:student_dating_app/components/square_tile.dart';
+import 'package:student_dating_app/pages/home_page.dart';
 import 'package:student_dating_app/pages/signin_page.dart';
 
 class LoginPage extends StatelessWidget{
@@ -121,17 +122,16 @@ class LoginPage extends StatelessWidget{
                     Text("Not a member?"),
                     const SizedBox(width: 10),
                     GestureDetector(
-                      onTap: (){
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => SignInPage()),
-                        );
-                      },
-                      child: Text(
-                          "Sign Up",
-                          style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 18)
+                        onTap: (){
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) => SignInPage()),);
+                        },
+                        child: Text(
+                            "Sign Up",
+                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 18)
+                        ),
                       ),
-                    )
+
 
                   ],
                 )

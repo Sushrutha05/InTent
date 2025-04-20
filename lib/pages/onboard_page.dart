@@ -44,8 +44,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
+                  onLastPage?
                   GestureDetector(
                     child: Text("Previous"),
+                    onTap: (){ _controller.previousPage(
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.easeIn,
+                    );},
+                  )
+                      :
+                  GestureDetector(
+                    child: Text("Previous     "),
                     onTap:(){ _controller.previousPage(
                       duration: Duration(milliseconds: 500),
                       curve: Curves.easeIn,
@@ -72,7 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       )
                   :
                     GestureDetector(
-                      child: Text("Next"),
+                      child: Text("    Next    "),
                       onTap:(){ _controller.nextPage(
                         duration: Duration(milliseconds: 500),
                         curve: Curves.easeIn,
@@ -93,15 +102,20 @@ class OnboardingPage1 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
+    return Scaffold(
         backgroundColor: Colors.blueAccent[100],
-        body:
-        Center(
-          child: Text("Real Connections.\nStudent-First.\nMulti-Intent.", style: TextStyle(fontSize: 45),),
-        ),
-      ),
+        body:Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 50),
+
+            Padding(
+              padding: const EdgeInsets.only(left: 50.0),
+              child: Text("Real Connections.\nStudent-First.\nMulti-Intent.", style: TextStyle(fontSize: 45),),
+            ),
+          ],
+        )
+
     );
   }
 }
@@ -111,41 +125,85 @@ class OnboardingPage2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
+    return Scaffold(
+      backgroundColor: Colors.blueAccent[100],
         body:
             SafeArea(
               child:
                   Center(
                     child: Column(
                       children: [
+                        const SizedBox(height: 100,),
                         //title
-                        Text("What are you here for?"),
+                        Text(
+                          "What are you here for?",
+                          style: TextStyle(fontSize: 40),
+                        ),
 
                         //select options
                         Container(
-                          color: Colors.pink[200],
-                          child:Text("💖 Romantic Connections"),
-                        ),
+                          width: 400,
+                          height: 500,
+                          color: Colors.blueAccent[100],
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 20,),
 
-                        Container(
-                          color: Colors.green[200],
-                          child: Text("🤝 New Friends")
-                        ),
+                              GestureDetector(
+                                onTap: (){},
+                                child: Container(
+                                  height: 50,
+                                  width: 400,
+                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: Colors.blue),
+                                  child:Center(
+                                    child:
+                                      Text(
+                                        "💖 Romantic Connections",style: TextStyle(fontSize: 40),textAlign: TextAlign.center),
+                                  ),
+                                ),
+                              ),
 
-                        Container(
-                          color: Colors.green[200],
-                          child: Text("🧠 Study/Project Partners")
-                        ),
+                              const SizedBox(height: 20,),
+
+                              GestureDetector(
+                                onTap: (){},
+                                child: Container(
+                                  height: 50,
+                                  width: 400,
+                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: Colors.blue),
+                                  child:Center(
+                                    child:
+                                    Text("🤝 New Friends",style: TextStyle(fontSize: 40),textAlign: TextAlign.center,),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 20,),
+
+                              GestureDetector(
+                                onTap: (){},
+                                child: Container(
+                                  height: 50,
+                                  width: 400,
+                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: Colors.blue),
+                                  child:Center(
+                                    child:
+                                    Text("🧠 Study/Project Partners",style: TextStyle(fontSize: 40),textAlign: TextAlign.center),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+
                         //tip
 
                       ],
                     ),
                 ),
             )
-      )
-    );
+        );
   }
 }
 
@@ -154,53 +212,138 @@ class OnboardingPage3 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
+    return Scaffold(
+            backgroundColor: Colors.blueAccent[100],
             body:
             SafeArea(
               child:
               Center(
                 child: Column(
                   children: [
+
+                    const SizedBox(height: 50,),
                     //title
-                    Text("What are you here for?"),
+                    Text("What kind of vibe are you looking for?",style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),),
 
                     //select options
                     Container(
-                      child:Text("🎨 Artsy"),
-                    ),
+                      width: 400,
+                      height: 500,
+                      color: Colors.blueAccent[100],
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
 
-                    Container(
-                        child: Text("🤓 Study-Focused")
-                    ),
+                          GestureDetector(
+                            onTap: (){},
+                            child: Container(
+                              height: 50,
+                              width: 400,
+                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: Colors.blue),
+                              child:Center(
+                                child:
+                                Text(
+                                    "🎨 Artsy",style: TextStyle(fontSize: 30),textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
 
-                    Container(
-                        child: Text("🧘 Calm")
-                    ),
+                          const SizedBox(height: 20,),
 
-                    Container(
-                        child: Text("🕺 Outgoing")
-                    ),
+                          GestureDetector(
+                            onTap: (){},
+                            child: Container(
+                              height: 50,
+                              width: 400,
+                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: Colors.blue),
+                              child:Center(
+                                child:
+                                Text("🤓 Study-Focused",style: TextStyle(fontSize: 30),textAlign: TextAlign.center,),
+                              ),
+                            ),
+                          ),
 
-                    Container(
-                        child: Text("🎤 Deep Talks")
-                    ),
+                          const SizedBox(height: 20,),
 
-                    Container(
-                        child: Text("🔥 Flirty")
-                    ),
+                          GestureDetector(
+                            onTap: (){},
+                            child: Container(
+                              height: 50,
+                              width: 400,
+                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: Colors.blue),
+                              child:Center(
+                                child:
+                                Text("🧘 Calm",style: TextStyle(fontSize: 30),textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
 
-                    Container(
-                        child: Text("💼 Goal-Driven")
-                    ),
-                    //tip
+                          const SizedBox(height: 20,),
 
+                          GestureDetector(
+                            onTap: (){},
+                            child: Container(
+                              height: 50,
+                              width: 400,
+                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: Colors.blue),
+                              child:Center(
+                                child:
+                                Text("🕺 Outgoing",style: TextStyle(fontSize: 30),textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 20,),
+
+                          GestureDetector(
+                            onTap: (){},
+                            child: Container(
+                              height: 50,
+                              width: 400,
+                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: Colors.blue),
+                              child:Center(
+                                child:
+                                Text("🎤 Deep Talks",style: TextStyle(fontSize: 30),textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 20,),
+
+                          GestureDetector(
+                            onTap: (){},
+                            child: Container(
+                              height: 50,
+                              width: 400,
+                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: Colors.blue),
+                              child:Center(
+                                child:
+                                Text("🔥 Flirty",style: TextStyle(fontSize: 30),textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 20,),
+
+                          GestureDetector(
+                            onTap: (){},
+                            child: Container(
+                              height: 50,
+                              width: 400,
+                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), color: Colors.blue),
+                              child:Center(
+                                child:
+                                Text("💼 Goal-Driven",style: TextStyle(fontSize: 30),textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             )
-        )
     );
   }
 }
@@ -222,6 +365,7 @@ class _OnboardingPage4State extends State<OnboardingPage4> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blueAccent[100],
       body: SafeArea(
         child: Center(
           child: Column(
@@ -277,9 +421,8 @@ class OnboardingPage5 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
+    return Scaffold(
+            backgroundColor: Colors.blueAccent[100],
             body:
             SafeArea(
               child:
@@ -289,12 +432,12 @@ class OnboardingPage5 extends StatelessWidget {
                   children: [
                     //title
                     Text("You are all set", style: TextStyle(fontSize: 48),),
-                    Text("Ready to find your vibe?", style: TextStyle(fontSize: 40),)
+                    Text("Ready to find your vibe?", style: TextStyle(fontSize: 30),)
                   ],
                 ),
               ),
             )
-        )
-    );
+        );
+
   }
 }

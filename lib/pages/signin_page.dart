@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:student_dating_app/components/my_button.dart';
 import 'package:student_dating_app/components/my_textfield.dart';
 import 'package:student_dating_app/components/square_tile.dart';
+import 'package:student_dating_app/pages/onboard_page.dart';
 
 class SignInPage extends StatelessWidget{
 
@@ -55,9 +56,15 @@ class SignInPage extends StatelessWidget{
                     decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),color: Colors.black,),
 
                     child:
-                      Text(
-                          "Sign In",
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)
+                      GestureDetector(
+                        onTap: (){
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) => OnboardingScreen()));
+                        },
+                        child: Text(
+                            "Sign In",
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)
+                        ),
                       ),
                   ),
 
