@@ -16,7 +16,14 @@ class SignInPage extends StatelessWidget{
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: Colors.grey[200],
-        appBar: AppBar(leading: Icon(Icons.turn_left_sharp), backgroundColor:Colors.grey[200]),
+        appBar: AppBar(
+            leading: GestureDetector(
+              child: Icon(Icons.turn_left_sharp),
+              onTap: (){
+                Navigator.pop(context);
+              },
+            ),
+            backgroundColor:Colors.grey[200]),
         body: SafeArea(
             child:Center(
               child: Column(
