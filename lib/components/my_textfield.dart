@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 
-
 class MyTextField extends StatelessWidget {
   final controller;
   final String hintText;
   final bool obscureText;
 
-
   const MyTextField({
     super.key,
     required this.hintText,
     required this.controller,
-    required this.obscureText
+    required this.obscureText,
   });
 
   @override
@@ -22,22 +20,19 @@ class MyTextField extends StatelessWidget {
         controller: controller,
         obscureText: obscureText,
         decoration: InputDecoration(
-            enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.black)
-            ),
-            focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.green)
-            ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.black),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.green),
+          ),
 
-            fillColor: Colors.grey[200],
-            filled: true,
-            hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey[500])
+          fillColor: Colors.grey[200],
+          filled: true,
+          hintText: hintText,
+          hintStyle: TextStyle(color: Colors.grey[500]),
         ),
       ),
     );
   }
 }
-
-
-
