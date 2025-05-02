@@ -1,17 +1,24 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services") // Apply Google Services plugin
 }
 
 android {
     namespace = "com.example.student_dating_app"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "26.3.11579264"
+    compileSdk = flutter.compileSdkVersion  // Use Flutter's compileSdkVersion
+
+    defaultConfig {
+        applicationId = "com.example.student_dating_app"
+        minSdk = flutter.minSdkVersion  // Use Flutter's minSdkVersion
+        targetSdk = flutter.targetSdkVersion  // Use Flutter's targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
 
     buildFeatures {
-        buildConfig = true // Enable BuildConfig generation
+        buildConfig = true  // Enable BuildConfig generation
     }
 
     compileOptions {
@@ -23,37 +30,26 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
-    defaultConfig {
-        applicationId = "com.example.student_dating_app"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-    }
-
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("debug")  // Update with your signing config if necessary
         }
     }
+
+    // Optionally, set NDK version if necessary
+    ndkVersion = "26.3.11579264"
 }
 
 flutter {
-    source = "../.."
+    source = "../.."  // Correct path to your Flutter project
 }
-
-// Apply the Google services plugin
-/*apply(plugin = "com.google.gms.google-services")
 
 dependencies {
-    // Firebase SDK for Flutter (you can add more Firebase packages depending on the features you need)
-    implementation("com.google.firebase:firebase-auth:21.0.1")  // For Firebase Authentication
+    // Use Firebase BOM to handle versions automatically
+    implementation(platform("com.google.firebase:firebase-bom:32.0.0"))  // Latest Firebase BOM version
 
-    // Other Firebase dependencies if needed
-    // implementation 'com.google.firebase:firebase-firestore:24.0.3'
-    // implementation 'com.google.firebase:firebase-database:20.0.3'
+    // Firebase dependencies
+    implementation("com.google.firebase:firebase-auth")  // Firebase Authentication
+    implementation("com.google.firebase:firebase-firestore")  // Firebase Firestore
+    implementation("com.google.firebase:firebase-database")  // Firebase Realtime Database
 }
-*/
-
-
-

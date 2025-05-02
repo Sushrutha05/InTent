@@ -13,7 +13,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   int index = 0; // Track the current selected index for the navigation bar
 
   // List of pages corresponding to each tab
@@ -28,6 +27,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        appBar: AppBar(title: Text("InTent"), automaticallyImplyLeading: false),
         body: _pages[index],
         bottomNavigationBar: Container(
           color: Colors.black,
@@ -48,11 +48,30 @@ class _HomePageState extends State<HomePage> {
                 },
                 haptic: true,
 
-                tabs: const [
-                  GButton(icon: Icons.link_outlined, text: "Connect"),
-                  GButton(icon: Icons.search_outlined, text: "Search"),
-                  GButton(icon: Icons.chat_outlined, text: "Chats"),
-                  GButton(icon: Icons.account_circle_outlined, text: "Profile"),
+                tabs: [
+                  GButton(
+                    icon: Icons.link_outlined,
+                    text: "Connect",
+                    gap: 7,
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => ConnectPage()));
+                    },
+                  ),
+                  const GButton(
+                    icon: Icons.search_outlined,
+                    text: "Search",
+                    gap: 7,
+                  ),
+                  const GButton(
+                    icon: Icons.chat_outlined,
+                    text: "Chats",
+                    gap: 7,
+                  ),
+                  const GButton(
+                    icon: Icons.account_circle_outlined,
+                    text: "Profile",
+                    gap: 7,
+                  ),
                 ],
               ),
             ),
