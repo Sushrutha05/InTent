@@ -25,14 +25,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(title: Text("InTent"), automaticallyImplyLeading: false),
         body: _pages[index],
         bottomNavigationBar: Container(
           color: Colors.black,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 5),
             child: Flexible(
               child: GNav(
                 rippleColor: Colors.grey,
@@ -53,9 +52,6 @@ class _HomePageState extends State<HomePage> {
                     icon: Icons.link_outlined,
                     text: "Connect",
                     gap: 7,
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => ConnectPage()));
-                    },
                   ),
                   const GButton(
                     icon: Icons.search_outlined,
@@ -77,7 +73,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
-      ),
     );
   }
 }
