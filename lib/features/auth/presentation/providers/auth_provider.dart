@@ -1,0 +1,117 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:student_dating_app/features/auth/domain/auth_state.dart';
+import 'package:student_dating_app/features/auth/domain/user_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
+
+part 'auth_provider.g.dart';
+
+@Riverpod(keepAlive: true)
+class Auth extends _$Auth {
+  @override
+  AuthState build() {
+    // Initial state before determining if user is logged in
+    return const AuthState.initial();
+  }
+
+  Future<void> checkAuth() async {
+    state = const AuthState.loading();
+    final supabase = Supabase.instance.client;
+    final session = supabase.auth.currentSession;
+
+    if (session != null) {
+      final user = session.user;
+      final userModel = UserModel(
+        id: user.id,
+        email: user.email ?? '',
+        name: '',
+        isVerified: user.emailConfirmedAt != null,
+        createdAt: DateTime.parse(user.createdAt),
+      );
+      state = AuthState.authenticated(userModel);
+    } else {
+      state = const AuthState.unauthenticated();
+    }
+  }
+
+  Future<void> signInWithEmail(String email, String password) async {
+    state = const AuthState.loading();
+    try {
+      final supabase = Supabase.instance.client;
+      final response = await supabase.auth.signInWithPassword(
+        email: email.trim(),
+        password: password,
+      );
+
+      final user = response.user;
+      if (user != null) {
+        final userModel = UserModel(
+          id: user.id,
+          email: user.email ?? '',
+          name: '',
+          isVerified: user.emailConfirmedAt != null,
+          createdAt: DateTime.parse(user.createdAt),
+        );
+        state = AuthState.authenticated(userModel);
+      } else {
+        state = const AuthState.unauthenticated();
+      }
+    } catch (e) {
+      state = const AuthState.unauthenticated();
+      rethrow;
+    }
+  }
+
+  Future<void> signUpWithEmail(String email, String password) async {
+    state = const AuthState.loading();
+    try {
+      final supabase = Supabase.instance.client;
+      final domain = email.trim().split('@').last.toLowerCase();
+
+      // Validate domain against college_domain table
+      final domainCheck =
+          await supabase
+              .from('college_domain')
+              .select('college_name')
+              .eq('domain', domain)
+              .eq('verified', true)
+              .maybeSingle();
+
+      if (domainCheck == null) {
+        throw Exception(
+          'Your email domain is not recognized as a registered, verified college. Please use a valid university email.',
+        );
+      }
+
+      final collegeName = domainCheck['college_name'] as String;
+
+      // Proceed with signup, injecting collegeName into user metadata
+      final response = await supabase.auth.signUp(
+        email: email.trim(),
+        password: password,
+        data: {'college_name': collegeName},
+      );
+
+      final user = response.user;
+      if (user != null) {
+        final userModel = UserModel(
+          id: user.id,
+          email: user.email ?? '',
+          name: '',
+          isVerified: user.emailConfirmedAt != null,
+          createdAt: DateTime.parse(user.createdAt),
+        );
+        state = AuthState.authenticated(userModel);
+      } else {
+        state = const AuthState.unauthenticated();
+      }
+    } catch (e) {
+      state = const AuthState.unauthenticated();
+      rethrow;
+    }
+  }
+
+  Future<void> logout() async {
+    await Supabase.instance.client.auth.signOut();
+    state = const AuthState.unauthenticated();
+  }
+}

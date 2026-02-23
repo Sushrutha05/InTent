@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "com.example.student_dating_app"
     compileSdk = flutter.compileSdkVersion  // Use Flutter's compileSdkVersion
+    ndkVersion = "27.0.12077973"
 
     defaultConfig {
         applicationId = "com.example.student_dating_app"
@@ -36,8 +37,6 @@ android {
         }
     }
 
-    // Optionally, set NDK version if necessary
-    ndkVersion = "26.3.11579264"
 }
 
 flutter {
