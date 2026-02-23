@@ -27,7 +27,7 @@ class UserProfile extends _$UserProfile {
 
   Future<void> addPhoto(File file) async {
     final currentProfile = state.value;
-    if (currentProfile == null || currentProfile.photoUrls.length >= 6) return;
+    if (currentProfile == null) return;
 
     state = const AsyncValue.loading();
     try {

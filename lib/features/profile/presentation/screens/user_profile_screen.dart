@@ -203,11 +203,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                               mainAxisSpacing: 12,
                               childAspectRatio: 0.75,
                             ),
-                        itemCount: 6,
+                        itemCount: profile.photoUrls.length + 1,
                         itemBuilder: (context, index) {
-                          final hasPhoto = index < profile.photoUrls.length;
-
-                          if (hasPhoto) {
+                          if (index < profile.photoUrls.length) {
                             return Stack(
                               fit: StackFit.expand,
                               children: [
@@ -308,10 +306,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                             );
                           } else {
                             return GestureDetector(
-                              onTap:
-                                  profile.photoUrls.length < 6
-                                      ? _pickImage
-                                      : null,
+                              onTap: _pickImage,
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: AppTheme.surfaceSolid,
