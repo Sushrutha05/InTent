@@ -4,8 +4,8 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="student_dating_app"
-        android:icon="@mipmap/ic_launcher">
+        android:label="InTent"
+        android:icon="@mipmap/launcher_icon">
 
         <activity
 

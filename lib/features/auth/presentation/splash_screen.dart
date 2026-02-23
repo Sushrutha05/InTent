@@ -123,28 +123,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Theme.of(
-                          context,
-                        ).primaryColor.withValues(alpha: 0.05),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(
-                              context,
-                            ).primaryColor.withValues(alpha: 0.15),
-                            blurRadius: 30,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.favorite_rounded,
-                        size: 80,
-                        color: Theme.of(context).primaryColor,
-                      ),
+                    Image(
+                      image: AssetImage('lib/images/Intent_logo.png'),
+                      height: 88,
+                      width: 88,
                     ),
                     const SizedBox(height: 32),
                     Text(

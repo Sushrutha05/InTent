@@ -105,27 +105,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 48),
+              const SizedBox(height: 10),
 
               // Decorative Logo element
               Center(
                 child: Hero(
                   tag: 'app_logo',
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppTheme.primaryColor.withValues(alpha: 0.15),
-                    ),
-                    child: const Icon(
-                      Icons.favorite_rounded,
-                      size: 64,
-                      color: AppTheme.primaryColor,
-                    ),
+
+                  child: Image(
+                    image: AssetImage('lib/images/Intent_logo.png'),
+                    height: 88,
+                    width: 88,
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 0),
 
               Text(
                 'Intent',
@@ -143,7 +137,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 80),
+              const SizedBox(height: 60),
 
               TextField(
                 controller: _emailController,
@@ -222,7 +216,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
               Text(
                 'By continuing, you agree to our Terms of Service and Privacy Policy. Mutual trust is our core principle.',

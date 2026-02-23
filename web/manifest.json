@@ -1,6 +1,6 @@
 {
-    "name": "student_dating_app",
-    "short_name": "student_dating_app",
+    "name": "InTent",
+    "short_name": "InTent",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

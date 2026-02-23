@@ -39,7 +39,7 @@ class StudentDatingApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
-      title: 'Intent',
+      title: 'InTent',
       theme: AppTheme.lightTheme,
       darkTheme:
           AppTheme.lightTheme, // Force light theme everywhere for this version
