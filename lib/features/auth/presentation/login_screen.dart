@@ -150,7 +150,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 keyboardType: TextInputType.emailAddress,
                 style: const TextStyle(color: AppTheme.textPrimary),
                 decoration: const InputDecoration(
-                  hintText: 'University Email (.edu)',
+                  hintText: 'University Email (.edu / .ac.in)',
+                  hintStyle: TextStyle(fontSize: 14),
                   prefixIcon: Icon(Icons.school, color: AppTheme.textPrimary),
                 ),
               ),
@@ -172,7 +173,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       _obscurePassword
                           ? Icons.visibility_off_rounded
                           : Icons.visibility_rounded,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.textPrimary,
                     ),
                     onPressed: () {
                       setState(() {
