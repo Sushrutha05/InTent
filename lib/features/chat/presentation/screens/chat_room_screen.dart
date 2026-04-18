@@ -8,6 +8,9 @@ import 'package:student_dating_app/features/chat/presentation/providers/chat_pro
 import 'package:student_dating_app/features/chat/domain/services/intent_shift_service.dart';
 import 'package:student_dating_app/features/discovery/presentation/widgets/progressive_blur_image.dart';
 import 'package:student_dating_app/features/discovery/presentation/widgets/profile_detail_bottom_sheet.dart';
+import 'package:student_dating_app/features/discovery/presentation/providers/discovery_provider.dart';
+
+import 'package:student_dating_app/core/notifications/notification_service.dart';
 
 class ChatRoomScreen extends ConsumerStatefulWidget {
   final String chatId;
@@ -27,7 +30,19 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
   @override
   void initState() {
     super.initState();
+    NotificationService.currentlyOpenChatId = widget.chatId;
     _fetchInitialChannelData();
+    _markMessagesAsRead();
+  }
+
+  Future<void> _markMessagesAsRead() async {
+    final supabase = Supabase.instance.client;
+    final currentUserId = supabase.auth.currentUser?.id;
+    if (currentUserId != null) {
+      await ref
+          .read(chatRepositoryProvider)
+          .markMessagesAsRead(widget.chatId, currentUserId);
+    }
   }
 
   Future<void> _fetchInitialChannelData() async {
@@ -76,7 +91,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           vibeAnswer: profileResponse['vibe_answer'] as String? ?? '',
           interests: interestsRaw.map((e) => e.toString()).toList(),
           photoUrls: photosRaw.map((e) => e.toString()).toList(),
-          currentBlurLevel: 1.0 - _currentUnblurProgress,
+          currentBlurLevel: AppTheme.getRevealBlurLevel(_currentUnblurProgress),
         );
       });
     } catch (e) {
@@ -110,12 +125,13 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
-      print(e);
+      debugPrint('Failed to send message: $e');
     }
   }
 
   @override
   void dispose() {
+    NotificationService.currentlyOpenChatId = null;
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -131,10 +147,23 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     final matchAsync = ref.watch(matchStreamProvider(widget.chatId));
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
 
-    // Use progress from stream if available, otherwise fallback to local state (initial load)
+    // Use progress from stream if available, and keep local state updated to prevent flicker
     final displayProgress = matchAsync.when(
-      data: (data) => (data['unblur_progress'] as num? ?? 0.0).toDouble(),
-      loading: () => _currentUnblurProgress,
+      data: (data) {
+        final progress = (data['unblur_progress'] as num? ?? 0.0).toDouble();
+        // Update local state if it differs, allowing fallback during stream loading states
+        if (progress != _currentUnblurProgress) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _currentUnblurProgress = progress;
+              });
+            }
+          });
+        }
+        return progress;
+      },
+      loading: () => _currentUnblurProgress, // Smooth fallback to last known progress
       error: (_, __) => _currentUnblurProgress,
     );
 
@@ -168,7 +197,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                           imageUrl:
                               _matchedUser!.photoUrls.isNotEmpty
                                   ? _matchedUser!.photoUrls.first
-                                  : 'https://via.placeholder.com/150',
+                                  : AppTheme.defaultUserImage,
                           blurLevel: _getUIBlurLevel(displayProgress),
                         ),
                       ),
@@ -217,6 +246,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
               onSelected: (value) async {
                 if (value == 'shift_intent') {
                   _showIntentShiftDialog();
+                } else if (value == 'block_user') {
+                  _showBlockDialog();
                 }
               },
               itemBuilder:
@@ -224,6 +255,13 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                     const PopupMenuItem(
                       value: 'shift_intent',
                       child: Text('Request Intent Shift'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'block_user',
+                      child: Text(
+                        'Block & Report User',
+                        style: TextStyle(color: Colors.redAccent),
+                      ),
                     ),
                   ],
             ),
@@ -252,12 +290,20 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                   );
                 }
 
-                // Auto-scroll to bottom on new messages (simple implementation)
+                // Auto-scroll AND mark as read on new messages
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (_scrollController.hasClients) {
                     _scrollController.jumpTo(
                       _scrollController.position.maxScrollExtent,
                     );
+                  }
+
+                  // If any messages are unread AND were sent by the OTHER person, mark all as read.
+                  final hasUnreadFromOther = messages.any(
+                    (m) => !m.isRead && m.senderId != currentUserId,
+                  );
+                  if (hasUnreadFromOther) {
+                    _markMessagesAsRead();
                   }
                 });
 
@@ -333,6 +379,10 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                   Expanded(
                     child: TextField(
                       controller: _messageController,
+                      maxLength: 1000,
+                      buildCounter:
+                          (context, {required currentLength, required isFocused, maxLength}) =>
+                              null, // Hide character counter for a cleaner UI
                       style: const TextStyle(color: AppTheme.textPrimary),
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
@@ -444,6 +494,62 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
             ),
           ),
         );
+      }
+    }
+  }
+
+  Future<void> _showBlockDialog() async {
+    if (_matchedUser == null) return;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Block & Report'),
+          content: const Text(
+            'Are you sure you want to block this user? The chat will be deleted, and you will no longer see each other. This action is permanent.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Block User',
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true && mounted) {
+      try {
+        await ref
+            .read(discoveryNotifierProvider.notifier)
+            .blockUser(_matchedUser!.id);
+
+        if (mounted) {
+          context.pop(); // Go back to chat list
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('User blocked.')));
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        }
       }
     }
   }

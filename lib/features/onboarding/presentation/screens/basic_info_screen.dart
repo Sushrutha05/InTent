@@ -106,7 +106,7 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
+            color: AppTheme.textPrimary,
           ),
           onPressed: () {
             notifier.previousStep();
@@ -184,7 +184,7 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
                             color:
                                 _selectedDate == null
                                     ? AppTheme.textSecondary
-                                    : Colors.white,
+                                    : AppTheme.textPrimary,
                             fontSize: 16,
                           ),
                         ),
@@ -256,7 +256,7 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
                               color:
                                   isSelected
                                       ? AppTheme.primaryColor
-                                      : Colors.white,
+                                      : AppTheme.textSecondary,
                               fontWeight:
                                   isSelected
                                       ? FontWeight.bold
@@ -304,7 +304,7 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
     return TextField(
       controller: controller,
       readOnly: readOnly,
-      style: TextStyle(color: readOnly ? AppTheme.textSecondary : Colors.white),
+      style: TextStyle(color: readOnly ? AppTheme.textSecondary : AppTheme.textPrimary),
       onChanged: (_) => setState(() {}), // trigger validation check
       decoration: InputDecoration(
         labelText: label,

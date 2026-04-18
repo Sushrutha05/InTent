@@ -17,7 +17,7 @@ class PrimaryPhotoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // max blur sigma is 30.0 for personality-first consistency
-    final blurSigma = blurLevel * 30.0;
+    final blurSigma = blurLevel * 10.0;
     // slight desaturation based on blur level
     final saturation = 1.0 - (blurLevel * 0.4);
 

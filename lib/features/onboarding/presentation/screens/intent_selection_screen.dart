@@ -32,7 +32,7 @@ class IntentSelectionScreen extends ConsumerWidget {
                         color:
                             index <= 0
                                 ? AppTheme.primaryColor
-                                : AppTheme.surfaceColor,
+                                : AppTheme.dividerColor,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

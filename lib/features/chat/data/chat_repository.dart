@@ -91,9 +91,7 @@ class ChatRepository {
                 matchedUser: matchedProfile,
                 messages: messages,
                 lastActivityAt:
-                    messages.isNotEmpty
-                        ? messages.first.createdAt
-                        : DateTime.parse(match['created_at']),
+                    DateTime.parse(match['last_message_at'] ?? match['created_at']),
                 unblurProgress:
                     (match['unblur_progress'] as num? ?? 0.0).toDouble(),
               ),
@@ -182,4 +180,20 @@ class ChatRepository {
       rethrow;
     }
   }
+
+  // Mark all unread messages in a specific match as read
+  Future<void> markMessagesAsRead(String matchId, String currentUserId) async {
+    try {
+      await _client
+          .from('messages')
+          .update({'is_read': true})
+          .eq('match_id', matchId)
+          .neq('sender_id', currentUserId)
+          .eq('is_read', false);
+      debugPrint('Marked messages as read for match $matchId');
+    } catch (e) {
+      debugPrint('Error marking messages as read: $e');
+    }
+  }
 }
+

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:student_dating_app/features/onboarding/domain/onboarding_state.dart';
@@ -29,9 +30,9 @@ class ProfileRepository {
         final fileName =
             '${user.id}/${DateTime.now().millisecondsSinceEpoch}_$i.$extension';
 
-        print('Uploading to profile_photos: $fileName');
+        debugPrint('Uploading to profile_photos: $fileName');
         await _client.storage.from('profile_photos').upload(fileName, file);
-        print('Upload successful for $fileName');
+        debugPrint('Upload successful for $fileName');
 
         final publicUrl = _client.storage
             .from('profile_photos')
@@ -43,7 +44,7 @@ class ProfileRepository {
     }
 
     // 2. Insert into Profiles Table
-    print('Inserting profile data: ${user.id}');
+    debugPrint('Inserting profile data: ${user.id}');
     final profileData = {
       'id': user.id,
       'email': user.email,
@@ -59,6 +60,6 @@ class ProfileRepository {
     };
 
     await _client.from('profiles').upsert(profileData);
-    print('Successfully saved profile data!');
+    debugPrint('Successfully saved profile data!');
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
@@ -21,7 +20,7 @@ class MatchConfirmationScreen extends StatelessWidget {
             imageUrl:
                 matchedProfile.photoUrls.isNotEmpty
                     ? matchedProfile.photoUrls.first
-                    : 'https://via.placeholder.com/600x800',
+                    : AppTheme.defaultUserImage,
             blurLevel: 1.0,
             maxBlurSigma: 40.0,
           ),
@@ -68,7 +67,7 @@ class MatchConfirmationScreen extends StatelessWidget {
                       // Current User (Placeholder for now, in a real app would be the auth user's profile)
                       _buildAvatar(
                         imageUrl:
-                            'https://via.placeholder.com/150', // Mock current user
+                            AppTheme.defaultUserImage, // Mock current user
                         blurLevel: 0.0,
                       ),
                       const SizedBox(width: -20), // Overlap them slightly
@@ -77,9 +76,10 @@ class MatchConfirmationScreen extends StatelessWidget {
                         imageUrl:
                             matchedProfile.photoUrls.isNotEmpty
                                 ? matchedProfile.photoUrls.first
-                                : 'https://via.placeholder.com/150',
-                        blurLevel:
-                            0.6, // Decreased blur from 0.9 to 0.6 to reward the match!
+                                : AppTheme.defaultUserImage,
+                        blurLevel: AppTheme.getRevealBlurLevel(
+                          0.5,
+                        ), // Stage 1 soft blur for a new match!
                       ),
                     ],
                   ),

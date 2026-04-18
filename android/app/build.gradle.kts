@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.student_dating_app"
-        minSdk = flutter.minSdkVersion  // Use Flutter's minSdkVersion
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion  // Use Flutter's targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -25,6 +25,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -51,4 +52,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")  // Firebase Authentication
     implementation("com.google.firebase:firebase-firestore")  // Firebase Firestore
     implementation("com.google.firebase:firebase-database")  // Firebase Realtime Database
+    implementation("com.google.firebase:firebase-messaging") // Firebase Messaging
+    
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

@@ -9,7 +9,8 @@ part 'auth_provider.g.dart';
 class Auth extends _$Auth {
   @override
   AuthState build() {
-    // Initial state before determining if user is logged in
+    // Trigger immediate auth check
+    Future.microtask(() => checkAuth());
     return const AuthState.initial();
   }
 
@@ -113,5 +114,18 @@ class Auth extends _$Auth {
   Future<void> logout() async {
     await Supabase.instance.client.auth.signOut();
     state = const AuthState.unauthenticated();
+  }
+
+  Future<void> deleteAccount() async {
+    state = const AuthState.loading();
+    try {
+      // We use RPC because Supabase doesn't allow self-deletion from client SDK
+      await Supabase.instance.client.rpc('delete_user');
+      await logout();
+    } catch (e) {
+      // Revert loading state if it fails
+      await checkAuth();
+      rethrow;
+    }
   }
 }

@@ -54,7 +54,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
+            color: AppTheme.textPrimary,
           ),
           onPressed: () {
             notifier.previousStep();
@@ -79,7 +79,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
                         color:
                             index <= 2
                                 ? AppTheme.primaryColor
-                                : AppTheme.surfaceColor,
+                                : AppTheme.dividerColor,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -217,6 +217,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ),

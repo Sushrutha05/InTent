@@ -38,6 +38,9 @@ class AppTheme {
   ); // Academic blue-indigo
   static const Color intentPass = Color(0xFFB8B5AF); // Warm gray
 
+  // Assets
+  static const String defaultUserImage = 'lib/images/Intent_logo.png';
+
   static ThemeData get lightTheme {
     return ThemeData(
       brightness: Brightness.light,
@@ -116,7 +119,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         iconTheme: IconThemeData(color: textPrimary),
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           color: textPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -128,7 +131,7 @@ class AppTheme {
   // Gradual Reveal Logic Mapping
   static double getRevealBlurLevel(double progress) {
     if (progress >= 1.0) return 0.0; // Stage 2/3: Fully clear
-    if (progress >= 0.5) return 0.05; // Stage 1/2: ~5% softness
-    return 0.15; // Stage 0/1: ~15% softness
+    if (progress >= 0.5) return 0.2; // Stage 1/2: ~20% softness (Increased)
+    return 0.8; // Stage 0/1: ~80% softness (Increased from 0.15)
   }
 }

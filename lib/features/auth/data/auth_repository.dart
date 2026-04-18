@@ -43,4 +43,11 @@ class AuthRepository {
   Future<void> signOut() async {
     await _client.auth.signOut();
   }
+
+  Future<void> deleteAccount() async {
+    // Note: This requires a 'delete_user' RPC function in Supabase
+    // because client SDK doesn't allow self-deletion from auth.users for security.
+    await _client.rpc('delete_user');
+    await signOut();
+  }
 }

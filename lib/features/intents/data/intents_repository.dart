@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:student_dating_app/features/intents/domain/intent_model.dart';
+import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
 
 final intentsRepositoryProvider = Provider<IntentsRepository>((ref) {
@@ -60,7 +61,8 @@ class IntentsRepository {
           vibeAnswer: profileData['vibe_answer'] as String? ?? '',
           interests: interestsRaw.map((e) => e.toString()).toList(),
           photoUrls: photosRaw.map((e) => e.toString()).toList(),
-          currentBlurLevel: 0.15, // Matched, so 15% softness default
+          currentBlurLevel: AppTheme.getRevealBlurLevel(
+              0.5), // Stage 1: Consistent 20% softness for matches
         );
 
         return IntentModel(

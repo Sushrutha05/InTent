@@ -161,7 +161,7 @@ class ChatListScreen extends ConsumerWidget {
                                                       .matchedUser
                                                       .photoUrls
                                                       .first
-                                                  : 'https://via.placeholder.com/150',
+                                                  : AppTheme.defaultUserImage,
                                           blurLevel:
                                               AppTheme.getRevealBlurLevel(
                                                 match.unblurProgress,
@@ -244,7 +244,7 @@ class ChatListScreen extends ConsumerWidget {
                                 imageUrl:
                                     user.photoUrls.isNotEmpty
                                         ? user.photoUrls.first
-                                        : 'https://via.placeholder.com/150',
+                                        : AppTheme.defaultUserImage,
                                 blurLevel: AppTheme.getRevealBlurLevel(
                                   chat.unblurProgress,
                                 ),

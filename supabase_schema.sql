@@ -187,3 +187,67 @@ commit;
 -- add tables to the publication
 alter publication supabase_realtime add table public.matches;
 alter publication supabase_realtime add table public.messages;
+
+-- 8. FUNCTION: Delete User Account
+-- This allows a user to delete their own account from auth.users
+-- This will trigger a cascade delete of their profile and all related data
+CREATE OR REPLACE FUNCTION public.delete_user()
+RETURNS void AS $$
+BEGIN
+  DELETE FROM auth.users WHERE id = auth.uid();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Security: Only authenticated users can call this
+REVOKE ALL ON FUNCTION public.delete_user() FROM public;
+GRANT EXECUTE ON FUNCTION public.delete_user() TO authenticated;
+
+
+-- 9. Create the blocks table
+CREATE TABLE IF NOT EXISTS public.blocks (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  blocker_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  blocked_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  reason TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  UNIQUE(blocker_id, blocked_id)
+);
+
+ALTER TABLE public.blocks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view blocks they are involved in"
+  ON public.blocks FOR SELECT
+  USING ( auth.uid() = blocker_id OR auth.uid() = blocked_id );
+
+CREATE POLICY "Users can block others"
+  ON public.blocks FOR INSERT
+  WITH CHECK ( auth.uid() = blocker_id );
+
+CREATE POLICY "Users can unblock others"
+  ON public.blocks FOR DELETE
+  USING ( auth.uid() = blocker_id );
+
+
+-- 10. FUNCTION: Handle Block Trigger
+-- Automatically deletes matches and interactions when a block is created
+CREATE OR REPLACE FUNCTION on_block_create()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Delete existing matches between the two users 
+  DELETE FROM public.matches 
+  WHERE (user1_id = NEW.blocker_id AND user2_id = NEW.blocked_id)
+     OR (user1_id = NEW.blocked_id AND user2_id = NEW.blocker_id);
+
+  -- Delete existing interactions between the two users
+  DELETE FROM public.interactions
+  WHERE (actor_id = NEW.blocker_id AND target_id = NEW.blocked_id)
+     OR (actor_id = NEW.blocked_id AND target_id = NEW.blocker_id);
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER trigger_on_block
+AFTER INSERT ON public.blocks
+FOR EACH ROW
+EXECUTE FUNCTION on_block_create();

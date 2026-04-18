@@ -30,8 +30,9 @@ class RomanticCapManager extends _$RomanticCapManager {
           (response as List<dynamic>).where((match) {
             // Expiration Logic: if romanticExpiryHours passed with no message
             final lastMessageAtStr = match['last_message_at'] as String?;
-            if (lastMessageAtStr == null)
+            if (lastMessageAtStr == null) {
               return true; // Just matched, no message yet, still active
+            }
 
             final lastMessageAt = DateTime.parse(lastMessageAtStr);
             final hoursSince = DateTime.now().difference(lastMessageAt).inHours;

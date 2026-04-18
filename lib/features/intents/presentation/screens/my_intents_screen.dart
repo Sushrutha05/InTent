@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
+import 'package:student_dating_app/features/discovery/presentation/widgets/components/primary_photo_widget.dart';
 import 'package:student_dating_app/features/intents/presentation/providers/intents_provider.dart';
 
 class MyIntentsScreen extends ConsumerStatefulWidget {
@@ -209,64 +210,63 @@ class _MyIntentsScreenState extends ConsumerState<MyIntentsScreen>
                     ),
               );
             },
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: AppTheme.surfaceColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // 1. Blurred Background Image
+                PrimaryPhotoWidget(
+                  imageUrl:
+                      profile.photoUrls.isNotEmpty
+                          ? profile.photoUrls.first
+                          : AppTheme.defaultUserImage,
+                  blurLevel: profile.currentBlurLevel > 0 
+                      ? profile.currentBlurLevel 
+                      : AppTheme.getRevealBlurLevel(0.0), // Default strong blur
+                  onTap: () {
+                    // Handled by the GestureDetector wrapping the Stack
+                  },
+                ),
+                // 2. Profile Details Overlay
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.7),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.5, 1.0],
+                    ),
                   ),
-                ],
-                image:
-                    profile.photoUrls.isNotEmpty
-                        ? DecorationImage(
-                          image: NetworkImage(profile.photoUrls.first),
-                          fit: BoxFit.cover,
-                        )
-                        : null,
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.7),
+                  padding: const EdgeInsets.all(12),
+                  alignment: Alignment.bottomLeft,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${profile.name}, ${profile.age}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        profile.university,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: const [0.5, 1.0],
                   ),
                 ),
-                padding: const EdgeInsets.all(12),
-                alignment: Alignment.bottomLeft,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${profile.name}, ${profile.age}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      profile.university,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ),
           );
         },

@@ -45,8 +45,9 @@ class _ProfileCardState extends State<ProfileCard> {
                 imageUrl:
                     widget.profile.photoUrls.isNotEmpty
                         ? widget.profile.photoUrls.first
-                        : 'https://via.placeholder.com/600x800',
-                blurLevel: 0.15, // Stage 0/1: 15% softness
+                        : AppTheme.defaultUserImage,
+                blurLevel: AppTheme.getRevealBlurLevel(
+                    0.0), // Stage 0/1: Significant softness
                 onTap: _showDetails,
               ),
             ),

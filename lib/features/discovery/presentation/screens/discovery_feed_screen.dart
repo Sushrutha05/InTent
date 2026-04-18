@@ -1,11 +1,10 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
 import 'package:student_dating_app/features/discovery/presentation/providers/discovery_provider.dart';
-import 'package:student_dating_app/features/discovery/presentation/widgets/profile_card.dart';
+import 'package:student_dating_app/features/discovery/presentation/widgets/interactive_swipe_card.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:student_dating_app/features/profile/presentation/screens/user_profile_screen.dart';
 
@@ -16,12 +15,8 @@ class DiscoveryFeedScreen extends ConsumerStatefulWidget {
   ConsumerState<DiscoveryFeedScreen> createState() =>
       _DiscoveryFeedScreenState();
 }
-
-enum InstitutionFilter { myInstitution, all }
-
 class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
   final CardSwiperController _swiperController = CardSwiperController();
-  InstitutionFilter _currentFilter = InstitutionFilter.myInstitution;
 
   @override
   void dispose() {
@@ -32,6 +27,7 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
   @override
   Widget build(BuildContext context) {
     final discoveryState = ref.watch(discoveryNotifierProvider);
+    final currentFilter = ref.watch(discoveryFilterProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -84,7 +80,98 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
         ],
       ),
       body: SafeArea(
-        child: discoveryState.when(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 16, bottom: 8),
+              child: Container(
+                height: 40,
+                width: 200,
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceSolid,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Stack(
+                  children: [
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      left:
+                          currentFilter == InstitutionFilter.myInstitution
+                              ? 0
+                              : 100,
+                      top: 0,
+                      child: Container(
+                        width: 100,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(
+                            alpha: 0.08,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap:
+                                () => ref.read(discoveryFilterProvider.notifier).state = InstitutionFilter.myInstitution,
+                            child: Center(
+                              child: Text(
+                                'My Uni',
+                                style: TextStyle(
+                                  color:
+                                      currentFilter ==
+                                              InstitutionFilter
+                                                  .myInstitution
+                                          ? AppTheme.textPrimary
+                                          : AppTheme.textSecondary,
+                                  fontWeight:
+                                      currentFilter ==
+                                              InstitutionFilter
+                                                  .myInstitution
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap:
+                                () => ref.read(discoveryFilterProvider.notifier).state = InstitutionFilter.all,
+                            child: Center(
+                              child: Text(
+                                'All',
+                                style: TextStyle(
+                                  color:
+                                      currentFilter ==
+                                              InstitutionFilter.all
+                                          ? AppTheme.textPrimary
+                                          : AppTheme.textSecondary,
+                                  fontWeight:
+                                      currentFilter ==
+                                              InstitutionFilter.all
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: discoveryState.when(
           loading:
               () => const Center(
                 child: CircularProgressIndicator(color: AppTheme.primaryColor),
@@ -165,107 +252,18 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
               padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
               child: Column(
                 children: [
-                  // Custom Animated Institution Filter Toggle
-                  Container(
-                    height: 40,
-                    width: 200,
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceSolid,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Stack(
-                      children: [
-                        AnimatedPositioned(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeInOut,
-                          left:
-                              _currentFilter == InstitutionFilter.myInstitution
-                                  ? 0
-                                  : 100,
-                          top: 0,
-                          child: Container(
-                            width: 100,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withValues(
-                                alpha: 0.08,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap:
-                                    () => setState(
-                                      () =>
-                                          _currentFilter =
-                                              InstitutionFilter.myInstitution,
-                                    ),
-                                child: Center(
-                                  child: Text(
-                                    'My Uni',
-                                    style: TextStyle(
-                                      color:
-                                          _currentFilter ==
-                                                  InstitutionFilter
-                                                      .myInstitution
-                                              ? AppTheme.textPrimary
-                                              : AppTheme.textSecondary,
-                                      fontWeight:
-                                          _currentFilter ==
-                                                  InstitutionFilter
-                                                      .myInstitution
-                                              ? FontWeight.w600
-                                              : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap:
-                                    () => setState(
-                                      () =>
-                                          _currentFilter =
-                                              InstitutionFilter.all,
-                                    ),
-                                child: Center(
-                                  child: Text(
-                                    'All',
-                                    style: TextStyle(
-                                      color:
-                                          _currentFilter ==
-                                                  InstitutionFilter.all
-                                              ? AppTheme.textPrimary
-                                              : AppTheme.textSecondary,
-                                      fontWeight:
-                                          _currentFilter ==
-                                                  InstitutionFilter.all
-                                              ? FontWeight.w600
-                                              : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   Expanded(
                     child: CardSwiper(
                       controller: _swiperController,
                       cardsCount: swipeItems.length,
                       numberOfCardsDisplayed: swipeItems.length > 1 ? 2 : 1,
+                      scale: 0.95,
+                      backCardOffset: const Offset(0, 15),
                       onSwipe: (previousIndex, currentIndex, direction) {
+                        if (previousIndex < 0 ||
+                            previousIndex >= swipeItems.length) {
+                          return false;
+                        }
                         final profile = swipeItems[previousIndex];
                         final notifier = ref.read(
                           discoveryNotifierProvider.notifier,
@@ -306,91 +304,16 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
                         percentThresholdX,
                         percentThresholdY,
                       ) {
+                        if (index < 0 || index >= swipeItems.length) {
+                          return const SizedBox.shrink();
+                        }
                         final profile = swipeItems[index];
 
-                        double opacity = 0.0;
-                        Color overlayColor = Colors.transparent;
-                        String intentText = "";
-
-                        final double xPercent = percentThresholdX / 100.0;
-                        final double yPercent = percentThresholdY / 100.0;
-
-                        // Add a small threshold before showing overlay to reduce flickering
-                        if (xPercent.abs() > 0.05 || yPercent.abs() > 0.05) {
-                          if (xPercent.abs() > yPercent.abs()) {
-                            opacity = xPercent.abs().clamp(0.0, 1.0);
-                            if (xPercent > 0) {
-                              overlayColor = AppTheme.intentRomantic;
-                              intentText = "ROMANTIC";
-                            } else {
-                              overlayColor = AppTheme.intentPass;
-                              intentText = "PASS";
-                            }
-                          } else {
-                            opacity = yPercent.abs().clamp(0.0, 1.0);
-                            if (yPercent < 0) {
-                              overlayColor = AppTheme.intentCollaborate;
-                              intentText = "COLLABORATE";
-                            } else {
-                              overlayColor = AppTheme.intentFriendship;
-                              intentText = "FRIENDSHIP";
-                            }
-                          }
-                        }
-
-                        // Cap opacity for the background glow
-                        opacity = opacity.clamp(0.0, 1.0);
-
-                        // If there is no swipe action, just return the card
-                        if (opacity == 0) {
-                          return ProfileCard(profile: profile);
-                        }
-
-                        // When swiping, wrap the card in a glowing background and overlay text
-                        return Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: overlayColor.withValues(alpha: opacity),
-                              width: 2,
-                            ),
-                            color: overlayColor.withValues(
-                              alpha: opacity * 0.05,
-                            ),
-                          ),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              ProfileCard(profile: profile),
-                              Center(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: overlayColor,
-                                      width: 2,
-                                    ),
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  child: Text(
-                                    intentText,
-                                    style: TextStyle(
-                                      color: overlayColor.withValues(
-                                        alpha: 0.85,
-                                      ),
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 4,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                        return InteractiveSwipeCard(
+                          key: ValueKey(profile.id),
+                          profile: profile,
+                          dx: percentThresholdX,
+                          dy: percentThresholdY,
                         );
                       },
                     ),
@@ -443,6 +366,9 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
               ),
             );
           },
+        ),
+            ),
+          ],
         ),
       ),
     );

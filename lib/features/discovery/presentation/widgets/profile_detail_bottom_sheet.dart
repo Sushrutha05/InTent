@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
+import 'package:student_dating_app/features/discovery/presentation/providers/discovery_provider.dart';
 
 import 'package:student_dating_app/features/discovery/presentation/widgets/components/primary_photo_widget.dart';
 
-class ProfileDetailBottomSheet extends StatefulWidget {
+class ProfileDetailBottomSheet extends ConsumerStatefulWidget {
   final ProfileCardModel profile;
   final double unblurProgress;
 
@@ -15,7 +17,7 @@ class ProfileDetailBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<ProfileDetailBottomSheet> createState() =>
+  ConsumerState<ProfileDetailBottomSheet> createState() =>
       _ProfileDetailBottomSheetState();
 
   static void show(
@@ -36,7 +38,8 @@ class ProfileDetailBottomSheet extends StatefulWidget {
   }
 }
 
-class _ProfileDetailBottomSheetState extends State<ProfileDetailBottomSheet> {
+class _ProfileDetailBottomSheetState
+    extends ConsumerState<ProfileDetailBottomSheet> {
   double _currentExtent = 0.75;
 
   @override
@@ -85,7 +88,7 @@ class _ProfileDetailBottomSheetState extends State<ProfileDetailBottomSheet> {
                           imageUrl:
                               widget.profile.photoUrls.isNotEmpty
                                   ? widget.profile.photoUrls.first
-                                  : 'https://via.placeholder.com/600x800',
+                                  : AppTheme.defaultUserImage,
                           blurLevel: AppTheme.getRevealBlurLevel(
                             widget.unblurProgress,
                           ),
@@ -288,6 +291,27 @@ class _ProfileDetailBottomSheetState extends State<ProfileDetailBottomSheet> {
                                   ),
                                 ),
                               ],
+                              const SizedBox(height: 32),
+                              // Report / Block Section
+                              const Divider(),
+                              const SizedBox(height: 16),
+                              Center(
+                                child: TextButton.icon(
+                                  onPressed: () => _showBlockDialog(context),
+                                  icon: const Icon(
+                                    Icons.report_problem_outlined,
+                                    color: Colors.redAccent,
+                                    size: 20,
+                                  ),
+                                  label: const Text(
+                                    'Block & Report User',
+                                    style: TextStyle(
+                                      color: Colors.redAccent,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
                               const SizedBox(height: 48),
                             ],
                           ),
@@ -342,6 +366,66 @@ class _ProfileDetailBottomSheetState extends State<ProfileDetailBottomSheet> {
           );
         },
       ),
+    );
+  }
+
+  void _showBlockDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text('Block & Report'),
+            content: const Text(
+              'Are you sure you want to block this user? They will no longer see your profile and you will no longer see theirs. This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: AppTheme.textSecondary),
+                ),
+              ),
+              TextButton(
+                onPressed: () async {
+                  try {
+                    await ref
+                        .read(discoveryNotifierProvider.notifier)
+                        .blockUser(widget.profile.id);
+
+                    if (context.mounted) {
+                      Navigator.pop(context); // Close dialog
+                      Navigator.pop(context); // Close bottom sheet
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'User blocked and reported successfully',
+                          ),
+                          backgroundColor: Colors.black87,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: ${e.toString()}')),
+                      );
+                    }
+                  }
+                },
+                child: const Text(
+                  'Block User',
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
     );
   }
 

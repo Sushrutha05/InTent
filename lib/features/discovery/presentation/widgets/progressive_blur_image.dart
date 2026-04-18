@@ -12,7 +12,7 @@ class ProgressiveBlurImage extends StatelessWidget {
     super.key,
     required this.imageUrl,
     this.blurLevel = 1.0,
-    this.maxBlurSigma = 30.0, // High starting blur for personality-first!
+    this.maxBlurSigma = 45.0, // High starting blur for personality-first!
   });
 
   @override
