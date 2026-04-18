@@ -36,7 +36,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
         notifier.addPhoto(image.path);
       }
     } catch (e) {
-      print(e);
+      debugPrint('Error picking image: $e');
       scaffold.showSnackBar(SnackBar(content: Text('Error picking image: $e')));
     }
   }

@@ -25,8 +25,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- Enable RLS for profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public profiles are viewable by everyone."
+CREATE POLICY "Profiles are viewable by authenticated users."
   ON public.profiles FOR SELECT
+  TO authenticated
   USING ( true );
 
 CREATE POLICY "Users can insert their own profile."
@@ -144,7 +145,9 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = public, pg_temp;
 
 CREATE TRIGGER trigger_create_match
 AFTER INSERT ON public.interactions
@@ -196,7 +199,9 @@ RETURNS void AS $$
 BEGIN
   DELETE FROM auth.users WHERE id = auth.uid();
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = auth, public, pg_temp;
 
 -- Security: Only authenticated users can call this
 REVOKE ALL ON FUNCTION public.delete_user() FROM public;
@@ -245,7 +250,9 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = public, pg_temp;
 
 CREATE TRIGGER trigger_on_block
 AFTER INSERT ON public.blocks
