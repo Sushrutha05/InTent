@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
 import 'package:student_dating_app/features/discovery/presentation/providers/discovery_provider.dart';
 
@@ -240,23 +242,19 @@ class _ProfileDetailBottomSheetState
                                   itemBuilder: (context, index) {
                                     return ClipRRect(
                                       borderRadius: BorderRadius.circular(16),
-                                      child: Image.network(
-                                        widget.profile.photoUrls[index],
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (
-                                          context,
-                                          error,
-                                          stackTrace,
-                                        ) {
-                                          return Container(
-                                            color: AppTheme.surfaceSolid,
-                                            child: const Icon(
-                                              Icons.broken_image,
-                                              color: AppTheme.textMuted,
-                                            ),
-                                          );
-                                        },
+                                    child: CachedNetworkImage(
+                                      imageUrl: widget.profile.photoUrls[index],
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => Shimmer.fromColors(
+                                        baseColor: Colors.grey[300]!,
+                                        highlightColor: Colors.grey[100]!,
+                                        child: Container(color: Colors.white),
                                       ),
+                                      errorWidget: (context, url, error) => const Icon(
+                                        Icons.broken_image,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
                                     );
                                   },
                                 ),

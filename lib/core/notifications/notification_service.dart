@@ -240,9 +240,13 @@ class NotificationService {
   }
 
   void updateFCMToken() async {
-    String? token = await _fcm.getToken();
-    if (token != null) {
-      await _saveTokenToSupabase(token);
+    try {
+      String? token = await _fcm.getToken();
+      if (token != null) {
+        await _saveTokenToSupabase(token);
+      }
+    } catch (e) {
+      debugPrint('FCM: Failed to update token: $e');
     }
   }
 }

@@ -112,7 +112,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Center(
                 child: Hero(
                   tag: 'app_logo',
-
                   child: Image(
                     image: AssetImage('lib/images/Intent_logo.png'),
                     height: 88,

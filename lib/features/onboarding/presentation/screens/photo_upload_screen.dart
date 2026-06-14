@@ -237,7 +237,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
                         ? () async {
                           try {
                             await notifier.completeOnboarding();
-                            if (mounted) {
+                            if (context.mounted) {
                               context.go('/');
                             }
                           } catch (e) {

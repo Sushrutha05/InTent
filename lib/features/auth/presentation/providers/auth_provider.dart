@@ -72,18 +72,32 @@ class Auth extends _$Auth {
       final domainCheck =
           await supabase
               .from('college_domain')
-              .select('college_name')
+              .select('college_id')
               .eq('domain', domain)
               .eq('verified', true)
               .maybeSingle();
 
+      String collegeName;
       if (domainCheck == null) {
-        throw Exception(
-          'Your email domain is not recognized as a registered, verified college. Please use a valid university email.',
-        );
+        // Developer bypass for testing without database setup
+        if (domain == 'test.edu' || domain == 'test.com') {
+          collegeName = 'Test University';
+        } else {
+          throw Exception(
+            'Your email domain ($domain) is not recognized as a registered, verified college. Please use a valid university email or a test domain (test.edu).',
+          );
+        }
+      } else {
+        final collegeId = domainCheck['college_id'];
+        try {
+          // Attempt to get the beautiful name from the colleges table
+          final college = await supabase.from('colleges').select('name').eq('id', collegeId).maybeSingle();
+          collegeName = college != null ? college['name'] as String : domain.toUpperCase();
+        } catch (_) {
+          // Fallback to domain name if colleges table has different column names
+          collegeName = domain.toUpperCase();
+        }
       }
-
-      final collegeName = domainCheck['college_name'] as String;
 
       // Proceed with signup, injecting collegeName into user metadata
       final response = await supabase.auth.signUp(

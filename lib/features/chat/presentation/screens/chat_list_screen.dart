@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/chat/presentation/providers/chat_providers.dart';
+import 'package:student_dating_app/features/chat/presentation/widgets/empty_chat_state.dart';
 import 'package:student_dating_app/features/discovery/presentation/widgets/progressive_blur_image.dart';
 
 class ChatListScreen extends ConsumerWidget {
@@ -33,14 +34,16 @@ class ChatListScreen extends ConsumerWidget {
           preferredSize: const Size.fromHeight(1.0),
           child: Container(color: AppTheme.dividerColor, height: 1.0),
         ),
-        automaticallyImplyLeading: true,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppTheme.textSecondary,
-          ),
-          onPressed: () => context.pop(),
-        ),
+        automaticallyImplyLeading: false,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: AppTheme.textSecondary,
+                ),
+                onPressed: () => context.pop(),
+              )
+            : null,
       ),
       body: channelsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -53,46 +56,7 @@ class ChatListScreen extends ConsumerWidget {
             ),
         data: (channels) {
           if (channels.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.chat_bubble_outline_rounded,
-                    size: 64,
-                    color: AppTheme.primaryColor.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No connections yet.',
-                    style: TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Real connections begin with intent.',
-                    style: TextStyle(color: AppTheme.textSecondary),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => context.go('/'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.surfaceColor,
-                      foregroundColor: AppTheme.primaryColor,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    child: const Text('Discover Profiles'),
-                  ),
-                ],
-              ),
-            );
+            return const EmptyChatState();
           }
 
           // Segregate into new matches (no messages) and active chats (has messages)
@@ -150,22 +114,25 @@ class ChatListScreen extends ConsumerWidget {
                                           width: 2,
                                         ),
                                       ),
-                                      child: ClipOval(
-                                        child: ProgressiveBlurImage(
-                                          imageUrl:
-                                              match
-                                                      .matchedUser
-                                                      .photoUrls
-                                                      .isNotEmpty
+                                      child: Hero(
+                                        tag: 'avatar_${match.id}',
+                                        child: ClipOval(
+                                          child: ProgressiveBlurImage(
+                                            imageUrl:
+                                                match
+                                                        .matchedUser
+                                                        .photoUrls
+                                                        .isNotEmpty
                                                   ? match
                                                       .matchedUser
                                                       .photoUrls
                                                       .first
                                                   : AppTheme.defaultUserImage,
-                                          blurLevel:
-                                              AppTheme.getRevealBlurLevel(
-                                                match.unblurProgress,
-                                              ),
+                                            blurLevel:
+                                                AppTheme.getRevealBlurLevel(
+                                                  match.unblurProgress,
+                                                ),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -239,14 +206,17 @@ class ChatListScreen extends ConsumerWidget {
                         height: 60,
                         child: Stack(
                           children: [
-                            ClipOval(
-                              child: ProgressiveBlurImage(
-                                imageUrl:
-                                    user.photoUrls.isNotEmpty
-                                        ? user.photoUrls.first
-                                        : AppTheme.defaultUserImage,
-                                blurLevel: AppTheme.getRevealBlurLevel(
-                                  chat.unblurProgress,
+                            Hero(
+                              tag: 'avatar_${chat.id}',
+                              child: ClipOval(
+                                child: ProgressiveBlurImage(
+                                  imageUrl:
+                                      user.photoUrls.isNotEmpty
+                                          ? user.photoUrls.first
+                                          : AppTheme.defaultUserImage,
+                                  blurLevel: AppTheme.getRevealBlurLevel(
+                                    chat.unblurProgress,
+                                  ),
                                 ),
                               ),
                             ),

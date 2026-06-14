@@ -7,18 +7,19 @@ import 'package:student_dating_app/features/auth/presentation/splash_screen.dart
 import 'package:student_dating_app/features/onboarding/presentation/screens/intent_selection_screen.dart';
 import 'package:student_dating_app/features/onboarding/presentation/screens/basic_info_screen.dart';
 import 'package:student_dating_app/features/onboarding/presentation/screens/photo_upload_screen.dart';
-import 'package:student_dating_app/features/discovery/presentation/screens/discovery_feed_screen.dart';
+import 'package:student_dating_app/features/discovery/presentation/screens/main_navigation_screen.dart';
 import 'package:student_dating_app/features/matching/presentation/screens/match_confirmation_screen.dart';
-import 'package:student_dating_app/features/chat/presentation/screens/chat_list_screen.dart';
 import 'package:student_dating_app/features/chat/presentation/screens/chat_room_screen.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
-import 'package:student_dating_app/features/intents/presentation/screens/my_intents_screen.dart';
+import 'package:student_dating_app/features/discovery/presentation/screens/full_screen_image_screen.dart';
+import 'package:student_dating_app/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:student_dating_app/features/profile/presentation/screens/settings_screen.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// A listener that triggers GoRouter refresh when authentication state changes.
 class RouterListenable extends ChangeNotifier {
-  RouterListenable(WidgetRef ref) {
+  RouterListenable(Ref ref) {
     ref.listen(authProvider, (previous, next) {
       notifyListeners();
     });
@@ -26,43 +27,56 @@ class RouterListenable extends ChangeNotifier {
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  // We use this to trigger a refresh whenever auth state changes
-  final authState = ref.watch(authProvider);
+  final listenable = RouterListenable(ref);
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
-    
+    refreshListenable: listenable,
+
     // Redirect logic for security (HIGH-1)
     redirect: (context, state) {
+      final authState = ref.read(authProvider);
+
       final isAuthenticated = authState.maybeMap(
         authenticated: (_) => true,
         orElse: () => false,
       );
-      
+
       final isLoading = authState.maybeMap(
         loading: (_) => true,
+        initial: (_) => true,
         orElse: () => false,
       );
 
       final isSplash = state.matchedLocation == '/splash';
       final isLoggingIn = state.matchedLocation == '/login';
 
-      // 1. If we are just starting or loading, stay on splash
-      if (isLoading && !isSplash) return '/splash';
+      // 1. If we are just starting or loading:
+      // - If on login, let them stay so the button spinner can show and errors can be caught
+      // - Otherwise, show the splash screen
+      if (isLoading) {
+        if (isLoggingIn || isSplash) return null;
+        return '/splash';
+      }
+
+      // Let the Splash Screen handle the initial routing and native splash removal
+      if (isSplash) return null;
 
       // 2. If NOT authenticated:
       // - If trying to access guarded routes, force to login
       // - If already on splash or login, stay there
-      if (!isAuthenticated) {
+      if (!isAuthenticated && !isLoading) {
         if (isLoggingIn || isSplash) return null;
         return '/login';
       }
 
       // 3. If authenticated:
-      // - If on login or splash, redirect to home
+      // - If on login, redirect to splash so it can securely check onboarding status from DB
       // - Otherwise, let them through
-      if (isLoggingIn || isSplash) return '/';
+      if (isAuthenticated) {
+        if (isLoggingIn) return '/splash';
+      }
 
       return null;
     },
@@ -96,7 +110,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         name: 'home',
-        builder: (context, state) => const DiscoveryFeedScreen(),
+        builder: (context, state) => const MainNavigationScreen(),
       ),
       GoRoute(
         path: '/match',
@@ -107,22 +121,51 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
-        path: '/intents',
-        name: 'intents',
-        builder: (context, state) => const MyIntentsScreen(),
-      ),
-      GoRoute(
-        path: '/chats',
-        name: 'chat_list',
-        builder: (context, state) => const ChatListScreen(),
-      ),
-      GoRoute(
         path: '/chat/:id',
         name: 'chat_room',
         builder: (context, state) {
           final chatId = state.pathParameters['id']!;
           return ChatRoomScreen(chatId: chatId);
         },
+      ),
+      GoRoute(
+        path: '/image',
+        name: 'full_image',
+        pageBuilder: (context, state) {
+          final data = state.extra as Map<String, String>;
+          return CustomTransitionPage(
+            key: state.pageKey,
+            transitionDuration: const Duration(milliseconds: 350),
+            reverseTransitionDuration: const Duration(milliseconds: 350),
+            child: FullScreenImageScreen(
+              imageUrl: data['imageUrl']!,
+              heroTag: data['heroTag']!,
+            ),
+            transitionsBuilder: (
+              context,
+              animation,
+              secondaryAnimation,
+              child,
+            ) {
+              return FadeTransition(
+                opacity: CurveTween(
+                  curve: Curves.easeInOutCubic,
+                ).animate(animation),
+                child: child,
+              );
+            },
+          );
+        },
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        name: 'edit_profile',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );

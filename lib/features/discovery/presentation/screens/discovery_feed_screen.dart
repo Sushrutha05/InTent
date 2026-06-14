@@ -1,12 +1,14 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
 import 'package:student_dating_app/features/discovery/presentation/providers/discovery_provider.dart';
 import 'package:student_dating_app/features/discovery/presentation/widgets/interactive_swipe_card.dart';
+import 'package:student_dating_app/features/discovery/presentation/widgets/empty_discovery_state.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
-import 'package:student_dating_app/features/profile/presentation/screens/user_profile_screen.dart';
+import 'package:student_dating_app/core/widgets/shimmer_loading.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class DiscoveryFeedScreen extends ConsumerStatefulWidget {
   const DiscoveryFeedScreen({super.key});
@@ -15,6 +17,7 @@ class DiscoveryFeedScreen extends ConsumerStatefulWidget {
   ConsumerState<DiscoveryFeedScreen> createState() =>
       _DiscoveryFeedScreenState();
 }
+
 class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
   final CardSwiperController _swiperController = CardSwiperController();
 
@@ -32,52 +35,22 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text(
-          'Discover',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 24),
+        title: Text(
+          'InTent',
+          style: GoogleFonts.outfit(
+            color: AppTheme.primaryColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 28,
+            letterSpacing: -0.5,
+          ),
         ),
-        centerTitle: true,
+        centerTitle: false, // Align branding to the left for a modern social media header
         backgroundColor: Colors.white,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
           child: Container(color: AppTheme.dividerColor, height: 1.0),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.favorite_outline_rounded,
-              color: AppTheme.textSecondary,
-            ),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.black12,
-            onPressed: () => context.push('/intents'),
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.chat_bubble_outline_rounded,
-              color: AppTheme.textSecondary,
-            ),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.black12,
-            onPressed: () => context.push('/chats'),
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.person_outline_rounded,
-              color: AppTheme.textSecondary,
-            ),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.black12,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const UserProfileScreen(),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: SafeArea(
         child: Column(
@@ -105,9 +78,7 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
                         width: 100,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(
-                            alpha: 0.08,
-                          ),
+                          color: AppTheme.primaryColor.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
@@ -118,45 +89,48 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap:
-                                () => ref.read(discoveryFilterProvider.notifier).state = InstitutionFilter.myInstitution,
+                                () =>
+                                    ref
+                                        .read(discoveryFilterProvider.notifier)
+                                        .state = InstitutionFilter
+                                            .myInstitution,
                             child: Center(
-                              child: Text(
-                                'My Uni',
-                                style: TextStyle(
-                                  color:
-                                      currentFilter ==
-                                              InstitutionFilter
-                                                  .myInstitution
-                                          ? AppTheme.textPrimary
-                                          : AppTheme.textSecondary,
-                                  fontWeight:
-                                      currentFilter ==
-                                              InstitutionFilter
-                                                  .myInstitution
-                                          ? FontWeight.w600
-                                          : FontWeight.normal,
+                                child: Text(
+                                  'My Uni',
+                                  style: TextStyle(
+                                    color:
+                                        currentFilter ==
+                                                InstitutionFilter.myInstitution
+                                            ? AppTheme.textPrimary
+                                            : AppTheme.textSecondary,
+                                    fontWeight:
+                                        currentFilter ==
+                                                InstitutionFilter.myInstitution
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
                         Expanded(
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap:
-                                () => ref.read(discoveryFilterProvider.notifier).state = InstitutionFilter.all,
+                                () =>
+                                    ref
+                                        .read(discoveryFilterProvider.notifier)
+                                        .state = InstitutionFilter.all,
                             child: Center(
                               child: Text(
                                 'All',
                                 style: TextStyle(
                                   color:
-                                      currentFilter ==
-                                              InstitutionFilter.all
+                                      currentFilter == InstitutionFilter.all
                                           ? AppTheme.textPrimary
                                           : AppTheme.textSecondary,
                                   fontWeight:
-                                      currentFilter ==
-                                              InstitutionFilter.all
+                                      currentFilter == InstitutionFilter.all
                                           ? FontWeight.w600
                                           : FontWeight.normal,
                                 ),
@@ -172,201 +146,173 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
             ),
             Expanded(
               child: discoveryState.when(
-          loading:
-              () => const Center(
-                child: CircularProgressIndicator(color: AppTheme.primaryColor),
-              ),
-          error:
-              (error, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 48,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Oops! Something went wrong',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    TextButton(
-                      onPressed:
-                          () =>
-                              ref
-                                  .read(discoveryNotifierProvider.notifier)
-                                  .refresh(),
-                      child: const Text(
-                        'Try Again',
-                        style: TextStyle(color: AppTheme.primaryColor),
+                loading: () => const DiscoverySkeleton(),
+                error:
+                    (error, stack) => Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.red,
+                            size: 48,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Oops! Something went wrong',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          TextButton(
+                            onPressed:
+                                () =>
+                                    ref
+                                        .read(
+                                          discoveryNotifierProvider.notifier,
+                                        )
+                                        .refresh(),
+                            child: const Text(
+                              'Try Again',
+                              style: TextStyle(color: AppTheme.primaryColor),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-          data: (swipeItems) {
-            if (swipeItems.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.sentiment_dissatisfied,
-                      color: AppTheme.textSecondary,
-                      size: 64,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No more profiles.',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Try adjusting your filters.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed:
-                          () =>
-                              ref
-                                  .read(discoveryNotifierProvider.notifier)
-                                  .refresh(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.surfaceColor,
-                        foregroundColor: AppTheme.primaryColor,
-                      ),
-                      child: const Text('Refresh'),
-                    ),
-                  ],
-                ),
-              );
-            }
+                data: (swipeItems) {
+                  if (swipeItems.isEmpty) {
+                    return EmptyDiscoveryState(
+                      onRefresh: () => ref.read(discoveryNotifierProvider.notifier).refresh(),
+                    );
+                  }
 
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: CardSwiper(
-                      controller: _swiperController,
-                      cardsCount: swipeItems.length,
-                      numberOfCardsDisplayed: swipeItems.length > 1 ? 2 : 1,
-                      scale: 0.95,
-                      backCardOffset: const Offset(0, 15),
-                      onSwipe: (previousIndex, currentIndex, direction) {
-                        if (previousIndex < 0 ||
-                            previousIndex >= swipeItems.length) {
-                          return false;
-                        }
-                        final profile = swipeItems[previousIndex];
-                        final notifier = ref.read(
-                          discoveryNotifierProvider.notifier,
-                        );
-
-                        if (direction == CardSwiperDirection.right) {
-                          // Reflective Romantic Swipe - process async
-                          WidgetsBinding.instance.addPostFrameCallback((
-                            _,
-                          ) async {
-                            final reason = await _showReflectiveBottomSheet(
-                              profile,
-                            );
-                            if (reason != null && mounted) {
-                              // Successfully answered, record it
-                              // You could also pass `reason` to notifier.handleRomantic if the notifier is updated,
-                              // for now we'll just log or trigger it.
-                              notifier.handleRomantic(profile);
-                            } else {
-                              // Cancelled, undo the swipe visually so it's back in the stack
-                              if (mounted) {
-                                _swiperController.undo();
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: CardSwiper(
+                            controller: _swiperController,
+                            cardsCount: swipeItems.length,
+                            numberOfCardsDisplayed:
+                                swipeItems.length > 1 ? 2 : 1,
+                            scale: 0.95,
+                            backCardOffset: const Offset(0, 15),
+                            onSwipe: (previousIndex, currentIndex, direction) {
+                              if (previousIndex < 0 ||
+                                  previousIndex >= swipeItems.length) {
+                                return false;
                               }
-                            }
-                          });
-                        } else if (direction == CardSwiperDirection.left) {
-                          notifier.handlePass(profile);
-                        } else if (direction == CardSwiperDirection.top) {
-                          notifier.handleCollaborate(profile);
-                        } else if (direction == CardSwiperDirection.bottom) {
-                          notifier.handleFriendship(profile);
-                        }
-                        return true;
-                      },
-                      cardBuilder: (
-                        context,
-                        index,
-                        percentThresholdX,
-                        percentThresholdY,
-                      ) {
-                        if (index < 0 || index >= swipeItems.length) {
-                          return const SizedBox.shrink();
-                        }
-                        final profile = swipeItems[index];
+                              final profile = swipeItems[previousIndex];
+                              final notifier = ref.read(
+                                discoveryNotifierProvider.notifier,
+                              );
 
-                        return InteractiveSwipeCard(
-                          key: ValueKey(profile.id),
-                          profile: profile,
-                          dx: percentThresholdX,
-                          dy: percentThresholdY,
-                        );
-                      },
+                              if (direction == CardSwiperDirection.right) {
+                                // Reflective Romantic Swipe - process async
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) async {
+                                  final reason =
+                                      await _showReflectiveBottomSheet(profile);
+                                  if (reason != null && mounted) {
+                                    // Heavy feedback for a match!
+                                    HapticFeedback.heavyImpact();
+                                    notifier.handleRomantic(profile);
+                                  } else {
+                                    // Cancelled, undo the swipe visually so it's back in the stack
+                                    if (mounted) {
+                                      _swiperController.undo();
+                                    }
+                                  }
+                                });
+                              } else if (direction ==
+                                  CardSwiperDirection.left) {
+                                notifier.handlePass(profile);
+                              } else if (direction == CardSwiperDirection.top) {
+                                notifier.handleCollaborate(profile);
+                              } else if (direction ==
+                                  CardSwiperDirection.bottom) {
+                                notifier.handleFriendship(profile);
+                              }
+                              return true;
+                            },
+                            cardBuilder: (
+                              context,
+                              index,
+                              percentThresholdX,
+                              percentThresholdY,
+                            ) {
+                              if (index < 0 || index >= swipeItems.length) {
+                                return const SizedBox.shrink();
+                              }
+                              final profile = swipeItems[index];
+
+                              return InteractiveSwipeCard(
+                                key: ValueKey(profile.id),
+                                profile: profile,
+                                dx: percentThresholdX,
+                                dy: percentThresholdY,
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Action Buttons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildActionButton(
+                              icon: Icons.close_rounded,
+                              color: AppTheme.intentPass,
+                              onPressed: () {
+                                if (swipeItems.isNotEmpty) {
+                                  _swiperController.swipe(
+                                    CardSwiperDirection.left,
+                                  );
+                                }
+                              },
+                            ),
+                            _buildActionButton(
+                              icon: Icons.handshake_rounded,
+                              color: AppTheme.intentFriendship,
+                              onPressed: () {
+                                if (swipeItems.isNotEmpty) {
+                                  _swiperController.swipe(
+                                    CardSwiperDirection.bottom,
+                                  );
+                                }
+                              },
+                            ),
+                            _buildActionButton(
+                              icon: Icons.bolt_rounded,
+                              color: AppTheme.intentCollaborate,
+                              onPressed: () {
+                                if (swipeItems.isNotEmpty) {
+                                  _swiperController.swipe(
+                                    CardSwiperDirection.top,
+                                  );
+                                }
+                              },
+                            ),
+                            _buildActionButton(
+                              icon: Icons.favorite_rounded,
+                              color: AppTheme.intentRomantic,
+                              onPressed: () {
+                                if (swipeItems.isNotEmpty) {
+                                  _swiperController.swipe(
+                                    CardSwiperDirection.right,
+                                  );
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Action Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildActionButton(
-                        icon: Icons.close_rounded,
-                        color: AppTheme.intentPass,
-                        onPressed: () {
-                          if (swipeItems.isNotEmpty) {
-                            _swiperController.swipe(CardSwiperDirection.left);
-                          }
-                        },
-                      ),
-                      _buildActionButton(
-                        icon: Icons.handshake_rounded,
-                        color: AppTheme.intentFriendship,
-                        onPressed: () {
-                          if (swipeItems.isNotEmpty) {
-                            _swiperController.swipe(CardSwiperDirection.bottom);
-                          }
-                        },
-                      ),
-                      _buildActionButton(
-                        icon: Icons.bolt_rounded,
-                        color: AppTheme.intentCollaborate,
-                        onPressed: () {
-                          if (swipeItems.isNotEmpty) {
-                            _swiperController.swipe(CardSwiperDirection.top);
-                          }
-                        },
-                      ),
-                      _buildActionButton(
-                        icon: Icons.favorite_rounded,
-                        color: AppTheme.intentRomantic,
-                        onPressed: () {
-                          if (swipeItems.isNotEmpty) {
-                            _swiperController.swipe(CardSwiperDirection.right);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+                  );
+                },
               ),
-            );
-          },
-        ),
             ),
           ],
         ),
@@ -396,7 +342,7 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
       ),
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 32.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -404,13 +350,13 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
                 'What caught your attention?',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
                 'Be intentional. Select what resonates before matching.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: AppTheme.textSecondary),
               ),
               const SizedBox(height: 24),
               _buildReasonButton(context, 'Shared goals'),
@@ -434,15 +380,19 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
         child: OutlinedButton(
           onPressed: () => Navigator.of(context).pop(reason),
           style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: AppTheme.primaryColor),
+            side: const BorderSide(color: AppTheme.dividerColor),
+            backgroundColor: AppTheme.surfaceColor,
+            elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
+          ).copyWith(
+            overlayColor: WidgetStateProperty.all(AppTheme.primaryColor.withValues(alpha: 0.05)),
           ),
           child: Text(
             reason,
             style: const TextStyle(
-              color: AppTheme.primaryColor,
+              color: AppTheme.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),

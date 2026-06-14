@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 
 class ProgressiveBlurImage extends StatelessWidget {
@@ -30,13 +31,10 @@ class ProgressiveBlurImage extends StatelessWidget {
           imageUrl: imageUrl,
           fit: BoxFit.cover,
           placeholder:
-              (context, url) => Container(
-                color: AppTheme.surfaceColor,
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    color: AppTheme.primaryColor,
-                  ),
-                ),
+              (context, url) => Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(color: Colors.white),
               ),
           errorWidget:
               (context, url, error) => Container(

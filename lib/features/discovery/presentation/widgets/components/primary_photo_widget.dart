@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 
 class PrimaryPhotoWidget extends StatelessWidget {
   final String imageUrl;
@@ -55,7 +56,11 @@ class PrimaryPhotoWidget extends StatelessWidget {
               fit: BoxFit.cover,
               width: double.infinity,
               height: double.infinity,
-              placeholder: (context, url) => Container(color: Colors.grey[200]),
+              placeholder: (context, url) => Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(color: Colors.white),
+              ),
               errorWidget:
                   (context, url, error) => Container(
                     color: Colors.grey[200],

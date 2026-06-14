@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/discovery/presentation/widgets/components/primary_photo_widget.dart';
+import 'package:student_dating_app/features/discovery/presentation/widgets/profile_detail_bottom_sheet.dart';
 import 'package:student_dating_app/features/intents/presentation/providers/intents_provider.dart';
+import 'package:student_dating_app/features/intents/presentation/widgets/empty_intent_state.dart';
 
 class MyIntentsScreen extends ConsumerStatefulWidget {
   const MyIntentsScreen({super.key});
@@ -36,10 +38,12 @@ class _MyIntentsScreenState extends ConsumerState<MyIntentsScreen>
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('My Intents'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => context.pop(),
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                onPressed: () => context.pop(),
+              )
+            : null,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(kTextTabBarHeight),
           child: AnimatedBuilder(
@@ -132,44 +136,27 @@ class _MyIntentsScreenState extends ConsumerState<MyIntentsScreen>
       Color color;
 
       if (tabIndex == 0) {
-        title = "No romantic interests yet.";
-        subtitle = "Express romantic intent to connect.";
-        icon = Icons.favorite_border_rounded;
+        title = "No romantic interests yet";
+        subtitle = "Express romantic intent to connect and build meaningful relationships.";
+        icon = Icons.favorite_rounded;
         color = AppTheme.intentRomantic;
       } else if (tabIndex == 1) {
-        title = "No friendship signals yet.";
-        subtitle = "Swipe up to build your circle.";
-        icon = Icons.handshake_outlined;
+        title = "No friendship signals yet";
+        subtitle = "Swipe down to build your circle and meet like-minded peers.";
+        icon = Icons.people_rounded;
         color = AppTheme.intentFriendship;
       } else {
-        title = "No collaborators yet.";
-        subtitle = "Find your next project partner.";
-        icon = Icons.bolt_outlined;
+        title = "No collaborators yet";
+        subtitle = "Swipe up to find your next project partner or study buddy.";
+        icon = Icons.bolt_rounded;
         color = AppTheme.intentCollaborate;
       }
 
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 64, color: color.withValues(alpha: 0.8)),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
-            ),
-          ],
-        ),
+      return EmptyIntentState(
+        title: title,
+        subtitle: subtitle,
+        icon: icon,
+        color: color,
       );
     }
 
@@ -190,25 +177,7 @@ class _MyIntentsScreenState extends ConsumerState<MyIntentsScreen>
 
           return GestureDetector(
             onTap: () {
-              // We could navigate to a detailed profile view here
-              // context.push('/profile/${profile.id}', extra: profile);
-              showDialog(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      backgroundColor: AppTheme.surfaceColor,
-                      title: Text(profile.name),
-                      content: Text(
-                        '${profile.bio}\n\nIntents: ${profile.primaryIntent}',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Close'),
-                        ),
-                      ],
-                    ),
-              );
+              ProfileDetailBottomSheet.show(context, profile);
             },
             child: Stack(
               fit: StackFit.expand,

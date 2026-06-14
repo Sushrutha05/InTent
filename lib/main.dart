@@ -8,6 +8,7 @@ import 'package:student_dating_app/core/notifications/notification_service.dart'
 import 'package:student_dating_app/core/config/supabase_config.dart';
 import 'package:student_dating_app/core/routing/app_router.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

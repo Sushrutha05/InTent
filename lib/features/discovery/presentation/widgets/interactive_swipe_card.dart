@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
 import 'package:student_dating_app/features/discovery/presentation/widgets/profile_card.dart';
@@ -110,6 +111,10 @@ class InteractiveSwipeCard extends StatelessWidget {
       pillScale = 1.1 + 0.05 * ((intensity - 0.5) / 0.1);
     } else {
       pillScale = 1.15; // Popped size
+      // NEW: Tactile feedback when threshold is hit
+      if (rawIntensity >= 0.6 && rawIntensity <= 0.65) {
+        HapticFeedback.selectionClick();
+      }
     }
 
     double overlayOpacity = 0.0;

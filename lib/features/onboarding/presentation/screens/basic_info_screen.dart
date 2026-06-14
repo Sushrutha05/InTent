@@ -132,7 +132,7 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
                         color:
                             index <= 1
                                 ? AppTheme.primaryColor
-                                : AppTheme.surfaceColor,
+                                : AppTheme.dividerColor,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

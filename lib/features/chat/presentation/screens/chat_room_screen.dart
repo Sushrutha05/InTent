@@ -122,6 +122,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
         );
       }
     } catch (e) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
@@ -163,7 +164,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
         }
         return progress;
       },
-      loading: () => _currentUnblurProgress, // Smooth fallback to last known progress
+      loading:
+          () =>
+              _currentUnblurProgress, // Smooth fallback to last known progress
       error: (_, __) => _currentUnblurProgress,
     );
 
@@ -192,13 +195,16 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                       width: 40,
                       height: 40,
                       decoration: const BoxDecoration(shape: BoxShape.circle),
-                      child: ClipOval(
-                        child: ProgressiveBlurImage(
-                          imageUrl:
-                              _matchedUser!.photoUrls.isNotEmpty
-                                  ? _matchedUser!.photoUrls.first
-                                  : AppTheme.defaultUserImage,
-                          blurLevel: _getUIBlurLevel(displayProgress),
+                      child: Hero(
+                        tag: 'avatar_${widget.chatId}',
+                        child: ClipOval(
+                          child: ProgressiveBlurImage(
+                            imageUrl:
+                                _matchedUser!.photoUrls.isNotEmpty
+                                    ? _matchedUser!.photoUrls.first
+                                    : AppTheme.defaultUserImage,
+                            blurLevel: _getUIBlurLevel(displayProgress),
+                          ),
                         ),
                       ),
                     ),
@@ -381,8 +387,12 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                       controller: _messageController,
                       maxLength: 1000,
                       buildCounter:
-                          (context, {required currentLength, required isFocused, maxLength}) =>
-                              null, // Hide character counter for a cleaner UI
+                          (
+                            context, {
+                            required currentLength,
+                            required isFocused,
+                            maxLength,
+                          }) => null, // Hide character counter for a cleaner UI
                       style: const TextStyle(color: AppTheme.textPrimary),
                       decoration: InputDecoration(
                         hintText: 'Type a message...',

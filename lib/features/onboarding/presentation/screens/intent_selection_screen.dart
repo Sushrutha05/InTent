@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/onboarding/domain/onboarding_state.dart';
 import 'package:student_dating_app/features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'package:student_dating_app/core/widgets/bouncy_button.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class IntentSelectionScreen extends ConsumerWidget {
   const IntentSelectionScreen({super.key});
@@ -43,9 +45,13 @@ class IntentSelectionScreen extends ConsumerWidget {
 
               Text(
                 'What brings you here?',
-                style: Theme.of(
-                  context,
-                ).textTheme.displayLarge?.copyWith(fontSize: 36, height: 1.2),
+                style: GoogleFonts.outfit(
+                  fontSize: 38,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -1,
+                  height: 1.2,
+                  color: AppTheme.textPrimary,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -67,7 +73,7 @@ class IntentSelectionScreen extends ConsumerWidget {
                       description:
                           'Looking for a date, a partner, or to see where things go.',
                       icon: Icons.favorite_rounded,
-                      color: AppTheme.primaryColor,
+                      color: AppTheme.intentRomantic,
                       isSelected: state.primaryIntent == UserIntent.romance,
                       onTap: () => notifier.setIntent(UserIntent.romance),
                     ),
@@ -77,7 +83,7 @@ class IntentSelectionScreen extends ConsumerWidget {
                       description:
                           'Looking to meet new people and expand my social circle.',
                       icon: Icons.people_alt_rounded,
-                      color: AppTheme.secondaryColor,
+                      color: AppTheme.intentFriendship,
                       isSelected: state.primaryIntent == UserIntent.friendship,
                       onTap: () => notifier.setIntent(UserIntent.friendship),
                     ),
@@ -86,8 +92,8 @@ class IntentSelectionScreen extends ConsumerWidget {
                       title: 'Collaboration',
                       description:
                           'Looking for study buddies, project partners, or networking.',
-                      icon: Icons.lightbulb_rounded,
-                      color: AppTheme.accentColor,
+                      icon: Icons.bolt_rounded,
+                      color: AppTheme.intentCollaborate,
                       isSelected:
                           state.primaryIntent == UserIntent.collaboration,
                       onTap: () => notifier.setIntent(UserIntent.collaboration),
@@ -97,18 +103,45 @@ class IntentSelectionScreen extends ConsumerWidget {
               ),
 
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed:
-                    state.primaryIntent == null
-                        ? null
-                        : () {
-                          notifier.nextStep();
-                          context.push('/onboarding/info');
-                        },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(60),
+              BouncyButton(
+                onPressed: state.primaryIntent == null
+                    ? () {} // Disabled state visually handled below
+                    : () {
+                        notifier.nextStep();
+                        context.push('/onboarding/info');
+                      },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: double.infinity,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: state.primaryIntent == null
+                        ? AppTheme.dividerColor
+                        : AppTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: state.primaryIntent == null
+                        ? []
+                        : [
+                            BoxShadow(
+                              color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Continue',
+                      style: TextStyle(
+                        color: state.primaryIntent == null
+                            ? AppTheme.textSecondary
+                            : Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-                child: const Text('Continue'),
               ),
             ],
           ),
@@ -137,31 +170,39 @@ class _IntentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+    return BouncyButton(
+      onPressed: onTap,
+      scaleFactor: 0.95,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color:
               isSelected
-                  ? color.withValues(alpha: 0.15)
+                  ? color.withValues(alpha: 0.08)
                   : AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: isSelected ? color : Colors.transparent,
-            width: 2,
+            color: isSelected ? color : AppTheme.dividerColor.withValues(alpha: 0.5),
+            width: isSelected ? 2 : 1,
           ),
           boxShadow:
               isSelected
                   ? [
                     BoxShadow(
-                      color: color.withValues(alpha: 0.2),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
+                      color: color.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
                     ),
                   ]
-                  : null,
+                  : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,7 +238,7 @@ class _IntentCard extends StatelessWidget {
                   Text(
                     description,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
+                      color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
                       height: 1.4,
                     ),
                   ),

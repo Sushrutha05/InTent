@@ -54,7 +54,7 @@ class MatchConfirmationScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'You and \${matchedProfile.name} have liked each other.',
+                    'You and ${matchedProfile.name} have liked each other.',
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.white, fontSize: 18),
                   ),
@@ -91,7 +91,7 @@ class MatchConfirmationScreen extends StatelessWidget {
                     onPressed: () {
                       // Navigate to chat
                       // GoRouter path will be e.g. /chat/:id
-                      context.pushReplacement('/chat/\${matchedProfile.id}');
+                      context.pushReplacement('/chat/${matchedProfile.id}');
                     },
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size.fromHeight(60),
