@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/auth/presentation/providers/auth_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -15,7 +14,6 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isSignUp = false;
   bool _obscurePassword = true;
 
   @override
@@ -35,15 +33,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     try {
-      if (_isSignUp) {
-        await ref
-            .read(authProvider.notifier)
-            .signUpWithEmail(_emailController.text, _passwordController.text);
-      } else {
-        await ref
-            .read(authProvider.notifier)
-            .signInWithEmail(_emailController.text, _passwordController.text);
-      }
+      await ref
+          .read(authProvider.notifier)
+          .signInWithEmail(_emailController.text, _passwordController.text);
     } catch (e) {
       if (mounted) {
         debugPrint('Auth error: $e');
@@ -62,37 +54,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     // Watch state to show loading spinner
     final authState = ref.watch(authProvider);
-
-    // If authenticated during this screen's lifetime, redirect.
-    ref.listen(authProvider, (previous, next) {
-      if (next.maybeMap(authenticated: (_) => true, orElse: () => false)) {
-        final supabase = Supabase.instance.client;
-        final user = supabase.auth.currentUser;
-        if (user != null) {
-          supabase
-              .from('profiles')
-              .select('is_onboarded')
-              .eq('id', user.id)
-              .maybeSingle()
-              .then((profile) {
-                final isOnboarded =
-                    profile != null
-                        ? (profile['is_onboarded'] as bool? ?? false)
-                        : false;
-                if (context.mounted) {
-                  if (isOnboarded) {
-                    context.go('/');
-                  } else {
-                    context.go('/onboarding/intent');
-                  }
-                }
-              })
-              .catchError((_) {
-                if (context.mounted) context.go('/onboarding/intent');
-              });
-        }
-      }
-    });
 
     final isLoading = authState.maybeMap(
       loading: (_) => true,
@@ -197,22 +158,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                         )
-                        : Text(_isSignUp ? 'Sign Up' : 'Sign In'),
+                        : const Text('Sign In'),
               ),
 
               const SizedBox(height: 16),
 
               TextButton(
                 onPressed: () {
-                  setState(() {
-                    _isSignUp = !_isSignUp;
-                  });
+                  context.push('/signup');
                 },
-                child: Text(
-                  _isSignUp
-                      ? 'Already have an account? Sign In'
-                      : 'Don\'t have an account? Sign Up',
-                  style: const TextStyle(color: AppTheme.primaryColor),
+                child: const Text(
+                  'Don\'t have an account? Sign Up',
+                  style: TextStyle(color: AppTheme.primaryColor),
                 ),
               ),
 

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:student_dating_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:student_dating_app/features/auth/presentation/login_screen.dart';
+import 'package:student_dating_app/features/auth/presentation/signup_screen.dart';
 import 'package:student_dating_app/features/auth/presentation/splash_screen.dart';
 import 'package:student_dating_app/features/onboarding/presentation/screens/intent_selection_screen.dart';
 import 'package:student_dating_app/features/onboarding/presentation/screens/basic_info_screen.dart';
@@ -51,12 +52,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final isSplash = state.matchedLocation == '/splash';
       final isLoggingIn = state.matchedLocation == '/login';
+      final isSigningUp = state.matchedLocation == '/signup';
 
       // 1. If we are just starting or loading:
       // - If on login, let them stay so the button spinner can show and errors can be caught
       // - Otherwise, show the splash screen
       if (isLoading) {
-        if (isLoggingIn || isSplash) return null;
+        if (isLoggingIn || isSigningUp || isSplash) return null;
         return '/splash';
       }
 
@@ -67,15 +69,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // - If trying to access guarded routes, force to login
       // - If already on splash or login, stay there
       if (!isAuthenticated && !isLoading) {
-        if (isLoggingIn || isSplash) return null;
+        if (isLoggingIn || isSigningUp || isSplash) return null;
         return '/login';
       }
 
       // 3. If authenticated:
-      // - If on login, redirect to splash so it can securely check onboarding status from DB
+      // - If on login or signup, redirect to splash so it can securely check onboarding status from DB
       // - Otherwise, let them through
       if (isAuthenticated) {
-        if (isLoggingIn) return '/splash';
+        if (isLoggingIn || isSigningUp) return '/splash';
       }
 
       return null;
@@ -91,6 +93,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/login',
         name: 'login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/signup',
+        name: 'signup',
+        builder: (context, state) => const SignupScreen(),
       ),
       GoRoute(
         path: '/onboarding/intent',
