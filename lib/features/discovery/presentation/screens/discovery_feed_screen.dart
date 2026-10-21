@@ -197,7 +197,10 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
                                 swipeItems.length > 1 ? 2 : 1,
                             scale: 0.95,
                             backCardOffset: const Offset(0, 15),
-                            onSwipe: (previousIndex, currentIndex, direction) {
+                            onEnd: () {
+                              ref.read(discoveryNotifierProvider.notifier).refresh();
+                            },
+                            onSwipe: (previousIndex, currentIndex, direction) async {
                               if (previousIndex < 0 ||
                                   previousIndex >= swipeItems.length) {
                                 return false;
@@ -208,30 +211,22 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
                               );
 
                               if (direction == CardSwiperDirection.right) {
-                                // Reflective Romantic Swipe - process async
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) async {
-                                  final reason =
-                                      await _showReflectiveBottomSheet(profile);
-                                  if (reason != null && mounted) {
-                                    // Heavy feedback for a match!
-                                    HapticFeedback.heavyImpact();
-                                    notifier.handleRomantic(profile);
-                                  } else {
-                                    // Cancelled, undo the swipe visually so it's back in the stack
-                                    if (mounted) {
-                                      _swiperController.undo();
-                                    }
-                                  }
-                                });
-                              } else if (direction ==
-                                  CardSwiperDirection.left) {
+                                // Reflective Romantic Swipe - wait for user to pick a reason
+                                final reason = await _showReflectiveBottomSheet(profile);
+                                if (reason != null && mounted) {
+                                  // Heavy feedback for a match!
+                                  HapticFeedback.heavyImpact();
+                                  notifier.handleRomantic(profile);
+                                  return true; // Swipe succeeds
+                                } else {
+                                  // Cancelled, prevent the swipe
+                                  return false;
+                                }
+                              } else if (direction == CardSwiperDirection.left) {
                                 notifier.handlePass(profile);
                               } else if (direction == CardSwiperDirection.top) {
                                 notifier.handleCollaborate(profile);
-                              } else if (direction ==
-                                  CardSwiperDirection.bottom) {
+                              } else if (direction == CardSwiperDirection.bottom) {
                                 notifier.handleFriendship(profile);
                               }
                               return true;
