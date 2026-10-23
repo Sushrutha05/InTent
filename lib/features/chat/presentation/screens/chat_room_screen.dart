@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
 import 'package:student_dating_app/features/chat/domain/chat_models.dart';
@@ -39,6 +40,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
   DateTime? _matchCreatedAt;
   bool _devPhotoUnlocked = false;
   ChatMessage? _replyingToMessage;
+  final Set<String> _locallyViewedSnapIds = {};
 
   @override
   void initState() {
@@ -46,6 +48,31 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     NotificationService.currentlyOpenChatId = widget.chatId;
     _fetchInitialChannelData();
     _markMessagesAsRead();
+    _loadLocallyViewedSnaps();
+  }
+
+  Future<void> _loadLocallyViewedSnaps() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs.getKeys().where((k) => k.startsWith('snap_viewed_'));
+      final ids = keys.map((k) => k.substring('snap_viewed_'.length)).toSet();
+      if (mounted && ids.isNotEmpty) {
+        setState(() {
+          _locallyViewedSnapIds.addAll(ids);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading viewed snaps: $e');
+    }
+  }
+
+  Future<void> _recordSnapViewedLocally(String messageId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('snap_viewed_$messageId', true);
+    } catch (e) {
+      debugPrint('Error recording viewed snap: $e');
+    }
   }
 
   Future<void> _markMessagesAsRead() async {
@@ -260,7 +287,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF141923),
+          color: AppTheme.surfaceColor,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -271,7 +298,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white24,
+                color: const Color(0xFFD1D5DB),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -403,11 +430,11 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF141923),
+        backgroundColor: AppTheme.surfaceColor,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: Colors.white10, height: 1.0),
+          child: Container(color: AppTheme.dividerColor, height: 1.0),
         ),
         leading: IconButton(
           icon: const Icon(
@@ -549,7 +576,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
         actions: [
           if (_matchedUser != null)
             PopupMenuButton<String>(
-              color: const Color(0xFF1E2433),
+              color: AppTheme.surfaceColor,
               icon: const Icon(
                 Icons.more_vert_rounded,
                 color: AppTheme.textSecondary,
@@ -792,21 +819,13 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                                   vertical: 10,
                                 ),
                                 decoration: BoxDecoration(
-                                  gradient: isMe
-                                      ? const LinearGradient(
-                                          colors: [
-                                            Color(0xFF6C63FF),
-                                            Color(0xFF4F46E5),
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        )
-                                      : null,
-                                  color: isMe ? null : const Color(0xFF1E2433),
+                                  color: isMe
+                                      ? AppTheme.primaryColor
+                                      : AppTheme.surfaceColor,
                                   border: isMe
                                       ? null
                                       : Border.all(
-                                          color: const Color(0xFF2B3447),
+                                          color: AppTheme.dividerColor,
                                           width: 1,
                                         ),
                                   borderRadius: BorderRadius.only(
@@ -817,9 +836,11 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.12),
+                                      color: isMe
+                                          ? AppTheme.primaryColor.withValues(alpha: 0.25)
+                                          : Colors.black.withValues(alpha: 0.04),
                                       blurRadius: 4,
-                                      offset: const Offset(0, 2),
+                                      offset: const Offset(0, 1),
                                     ),
                                   ],
                                 ),
@@ -883,9 +904,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                                                 ? Icons.done_all_rounded
                                                 : Icons.done_rounded,
                                             size: 13,
-                                            color: message.isRead
-                                                ? const Color(0xFF38BDF8)
-                                                : Colors.white60,
+                                            color: Colors.white,
                                           ),
                                         ],
                                       ],
@@ -907,9 +926,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           // Message Input Field & Interactive Reply Bar
           SafeArea(
             child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFF141923),
-                border: Border(top: BorderSide(color: Colors.white10)),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceColor,
+                border: Border(top: BorderSide(color: AppTheme.dividerColor)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -995,9 +1014,12 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                                     right: 8,
                                     child: Container(
                                       padding: const EdgeInsets.all(2),
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFF1E2433),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.surfaceColor,
                                         shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: AppTheme.dividerColor,
+                                        ),
                                       ),
                                       child: const Icon(
                                         Icons.lock_rounded,
@@ -1047,10 +1069,14 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(22),
-                                borderSide: BorderSide.none,
+                                borderSide: BorderSide(color: AppTheme.dividerColor),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(22),
+                                borderSide: BorderSide(color: AppTheme.dividerColor),
                               ),
                               filled: true,
-                              fillColor: const Color(0xFF1E2433),
+                              fillColor: AppTheme.backgroundColor,
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 10,
@@ -1066,16 +1092,11 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF6C63FF),
-                                Color(0xFF4F46E5),
-                              ],
-                            ),
+                            color: AppTheme.primaryColor,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF6C63FF).withValues(alpha: 0.3),
+                                color: AppTheme.primaryColor.withValues(alpha: 0.3),
                                 blurRadius: 6,
                                 offset: const Offset(0, 2),
                               ),
@@ -1107,9 +1128,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       margin: const EdgeInsets.symmetric(vertical: 14),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E2433),
+        color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppTheme.dividerColor),
       ),
       child: Text(
         dateText,
@@ -1131,8 +1152,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: isMe
-            ? Colors.black.withValues(alpha: 0.18)
-            : const Color(0xFF141923),
+            ? Colors.black.withValues(alpha: 0.12)
+            : AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(10),
         border: Border(
           left: BorderSide(
@@ -1177,39 +1198,90 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     if (snap == null) return const SizedBox.shrink();
 
     if (snap.isViewOnce) {
-      final isViewedByMe = currentUserId != null &&
-          snap.viewedByUserIds.contains(currentUserId);
+      final isAlreadyViewed = (currentUserId != null &&
+              snap.viewedByUserIds.contains(currentUserId)) ||
+          _locallyViewedSnapIds.contains(message.id);
+
+      final isViewedByOther =
+          snap.viewedByUserIds.any((id) => id != currentUserId);
+
+      // Determine state for sender vs recipient
+      final String title;
+      final String subtitle;
+      final bool canOpen;
+
+      if (isMe) {
+        if (isViewedByOther) {
+          title = 'Opened Snap';
+          subtitle = 'Opened by ${_matchedUser?.name ?? "them"}';
+          canOpen = false;
+        } else if (isAlreadyViewed) {
+          title = 'Opened Snap';
+          subtitle = 'Already viewed';
+          canOpen = false;
+        } else {
+          title = 'View-Once Snap 🔥';
+          subtitle = 'Sent • Tap to preview once (10s)';
+          canOpen = true;
+        }
+      } else {
+        if (isAlreadyViewed) {
+          title = 'Opened Snap';
+          subtitle = 'Already viewed';
+          canOpen = false;
+        } else {
+          title = 'View-Once Snap 🔥';
+          subtitle = 'Tap to view (10s)';
+          canOpen = true;
+        }
+      }
 
       return InkWell(
-        onTap: () {
-          SnapViewDialog.show(
-            context,
-            imageUrl: snap.imageUrl,
-            caption: snap.caption,
-            onViewed: () {
-              if (currentUserId != null && !isMe) {
-                ref.read(chatRepositoryProvider).markSnapViewed(
-                      widget.chatId,
-                      message.id,
-                      snap,
-                      currentUserId,
-                    );
+        onTap: canOpen
+            ? () {
+                SnapViewDialog.show(
+                  context,
+                  imageUrl: snap.imageUrl,
+                  caption: snap.caption,
+                  onViewed: () {
+                    if (mounted) {
+                      setState(() {
+                        _locallyViewedSnapIds.add(message.id);
+                      });
+                    }
+                    _recordSnapViewedLocally(message.id);
+                    if (currentUserId != null) {
+                      ref.read(chatRepositoryProvider).markSnapViewed(
+                            widget.chatId,
+                            message.id,
+                            snap,
+                            currentUserId,
+                          );
+                    }
+                  },
+                );
               }
-            },
-          );
-        },
+            : () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('This view-once snap has already expired and cannot be viewed again.'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: isViewedByMe
-                ? Colors.black26
-                : const Color(0xFFFF5252).withValues(alpha: 0.16),
+            color: canOpen
+                ? const Color(0xFFFFECEC)
+                : (isMe ? Colors.white.withValues(alpha: 0.15) : AppTheme.backgroundColor),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isViewedByMe
-                  ? Colors.white12
-                  : const Color(0xFFFF5252).withValues(alpha: 0.4),
+              color: canOpen
+                  ? const Color(0xFFFF5252).withValues(alpha: 0.4)
+                  : (isMe ? Colors.white24 : AppTheme.dividerColor),
               width: 1.2,
             ),
           ),
@@ -1217,10 +1289,12 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                isViewedByMe
-                    ? Icons.local_fire_department_outlined
-                    : Icons.local_fire_department_rounded,
-                color: isViewedByMe ? Colors.white38 : const Color(0xFFFF5252),
+                canOpen
+                    ? Icons.local_fire_department_rounded
+                    : Icons.local_fire_department_outlined,
+                color: canOpen
+                    ? const Color(0xFFFF5252)
+                    : (isMe ? Colors.white70 : AppTheme.textMuted),
                 size: 24,
               ),
               const SizedBox(width: 8),
@@ -1229,17 +1303,21 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    isViewedByMe ? 'Opened Snap' : 'View-Once Snap 🔥',
+                    title,
                     style: TextStyle(
-                      color: isViewedByMe ? Colors.white54 : Colors.white,
+                      color: canOpen
+                          ? (isMe ? Colors.white : AppTheme.textPrimary)
+                          : (isMe ? Colors.white70 : AppTheme.textMuted),
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
                   ),
                   Text(
-                    isViewedByMe ? 'Already viewed' : 'Tap to view (10s)',
+                    subtitle,
                     style: TextStyle(
-                      color: isViewedByMe ? Colors.white38 : Colors.white70,
+                      color: canOpen
+                          ? (isMe ? Colors.white70 : AppTheme.textSecondary)
+                          : (isMe ? Colors.white60 : AppTheme.textMuted),
                       fontSize: 11,
                     ),
                   ),
@@ -1308,7 +1386,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1E2433),
+          backgroundColor: AppTheme.surfaceColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -1397,7 +1475,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1E2433),
+          backgroundColor: AppTheme.surfaceColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),

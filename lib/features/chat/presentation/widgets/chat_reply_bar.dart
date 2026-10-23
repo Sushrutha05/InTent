@@ -22,9 +22,9 @@ class ChatReplyBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A202C),
+        color: AppTheme.surfaceColor,
         border: Border(
-          top: BorderSide(color: AppTheme.dividerColor.withValues(alpha: 0.5)),
+          top: BorderSide(color: AppTheme.dividerColor),
           left: const BorderSide(color: AppTheme.primaryColor, width: 3.5),
         ),
       ),

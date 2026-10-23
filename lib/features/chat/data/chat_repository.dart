@@ -303,7 +303,9 @@ class ChatRepository {
     Uint8List fileBytes,
   ) async {
     try {
-      final uniqueName = 'chat_${matchId}_${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      final user = _client.auth.currentUser;
+      if (user == null) throw Exception('No authenticated user found.');
+      final uniqueName = '${user.id}/chat_${matchId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       await _client.storage.from('profile_photos').uploadBinary(
             uniqueName,
             fileBytes,
@@ -336,7 +338,10 @@ class ChatRepository {
       final updatedSnap = snap.markViewed(viewerUserId);
       await _client
           .from('messages')
-          .update({'content': updatedSnap.encode()})
+          .update({
+            'content': updatedSnap.encode(),
+            'is_read': true,
+          })
           .eq('id', messageId);
       debugPrint('Snap $messageId marked as viewed by $viewerUserId');
     } catch (e) {

@@ -77,7 +77,7 @@ class _ChatPhotoPickerSheetState extends State<ChatPhotoPickerSheet> {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF141923),
+        color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + bottomInset),
@@ -89,7 +89,7 @@ class _ChatPhotoPickerSheetState extends State<ChatPhotoPickerSheet> {
             width: 44,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.white24,
+              color: const Color(0xFFD1D5DB),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -168,9 +168,9 @@ class _ChatPhotoPickerSheetState extends State<ChatPhotoPickerSheet> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E2433),
+                color: AppTheme.backgroundColor,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white12),
+                border: Border.all(color: AppTheme.dividerColor),
               ),
               child: Row(
                 children: [
@@ -212,7 +212,8 @@ class _ChatPhotoPickerSheetState extends State<ChatPhotoPickerSheet> {
                   ),
                   Switch.adaptive(
                     value: _isViewOnce,
-                    activeColor: const Color(0xFFFF5252),
+                    activeThumbColor: const Color(0xFFFF5252),
+                    activeTrackColor: const Color(0xFFFF5252).withValues(alpha: 0.4),
                     onChanged: (val) {
                       setState(() {
                         _isViewOnce = val;
@@ -238,12 +239,16 @@ class _ChatPhotoPickerSheetState extends State<ChatPhotoPickerSheet> {
                 hintText: 'Add a caption (optional)...',
                 hintStyle: const TextStyle(color: AppTheme.textMuted),
                 filled: true,
-                fillColor: const Color(0xFF1E2433),
+                fillColor: AppTheme.backgroundColor,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(color: AppTheme.dividerColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: AppTheme.dividerColor),
                 ),
               ),
             ),
@@ -323,9 +328,9 @@ class _ChatPhotoPickerSheetState extends State<ChatPhotoPickerSheet> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2433),
+          color: AppTheme.backgroundColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          border: Border.all(color: AppTheme.dividerColor),
         ),
         child: Column(
           children: [

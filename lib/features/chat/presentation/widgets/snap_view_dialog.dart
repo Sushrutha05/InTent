@@ -38,25 +38,55 @@ class SnapViewDialog extends StatefulWidget {
 
 class _SnapViewDialogState extends State<SnapViewDialog> {
   int _secondsRemaining = 10;
+  bool _isCountdownStarted = false;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    // Notify viewed immediately
-    widget.onViewed();
+    _listenToImageStream();
+  }
 
-    // 10 second countdown
-    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) return;
-      if (_secondsRemaining <= 1) {
-        t.cancel();
-        Navigator.of(context, rootNavigator: true).pop();
-      } else {
-        setState(() {
-          _secondsRemaining--;
+  void _listenToImageStream() {
+    final imageProvider = CachedNetworkImageProvider(widget.imageUrl);
+    final stream = imageProvider.resolve(ImageConfiguration.empty);
+    late ImageStreamListener listener;
+    listener = ImageStreamListener(
+      (ImageInfo info, bool synchronousCall) {
+        _startCountdown();
+      },
+      onError: (dynamic error, StackTrace? stackTrace) {
+        // If load fails, start timer anyway after 2s so user isn't stuck forever
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted && !_isCountdownStarted) {
+            _startCountdown();
+          }
         });
-      }
+      },
+    );
+    stream.addListener(listener);
+  }
+
+  void _startCountdown() {
+    if (_isCountdownStarted || !mounted) return;
+    _isCountdownStarted = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onViewed();
+
+      _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+        if (!mounted) return;
+        if (_secondsRemaining <= 1) {
+          t.cancel();
+          Navigator.of(context, rootNavigator: true).pop();
+        } else {
+          setState(() {
+            _secondsRemaining--;
+          });
+        }
+      });
+      setState(() {});
     });
   }
 
@@ -83,11 +113,45 @@ class _SnapViewDialogState extends State<SnapViewDialog> {
                     child: CachedNetworkImage(
                       imageUrl: widget.imageUrl,
                       fit: BoxFit.contain,
+                      imageBuilder: (context, imageProvider) {
+                        _startCountdown();
+                        return Image(
+                          image: imageProvider,
+                          fit: BoxFit.contain,
+                        );
+                      },
                       placeholder: (context, url) => const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(
+                              color: Color(0xFFFF5252),
+                              strokeWidth: 3,
+                            ),
+                            SizedBox(height: 14),
+                            Text(
+                              'Loading snap...',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       errorWidget: (context, url, error) => const Center(
-                        child: Icon(Icons.broken_image, color: Colors.white54, size: 48),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.broken_image, color: Colors.white54, size: 48),
+                            SizedBox(height: 8),
+                            Text(
+                              'Could not load snap',
+                              style: TextStyle(color: Colors.white54, fontSize: 13),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -101,27 +165,52 @@ class _SnapViewDialogState extends State<SnapViewDialog> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.7),
+                    color: Colors.black.withValues(alpha: 0.75),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFFF5252), width: 1.5),
+                    border: Border.all(
+                      color: _isCountdownStarted
+                          ? const Color(0xFFFF5252)
+                          : Colors.white24,
+                      width: 1.5,
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.local_fire_department_rounded,
-                        color: Color(0xFFFF5252),
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${_secondsRemaining}s',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                      if (!_isCountdownStarted) ...[
+                        const SizedBox(
+                          width: 13,
+                          height: 13,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFFFF5252),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          '10s',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ] else ...[
+                        const Icon(
+                          Icons.local_fire_department_rounded,
+                          color: Color(0xFFFF5252),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${_secondsRemaining}s',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

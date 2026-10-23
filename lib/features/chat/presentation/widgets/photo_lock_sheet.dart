@@ -39,7 +39,7 @@ class PhotoLockSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF141923),
+        color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
@@ -51,7 +51,7 @@ class PhotoLockSheet extends StatelessWidget {
             width: 44,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.white24,
+              color: const Color(0xFFD1D5DB),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -165,9 +165,9 @@ class PhotoLockSheet extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E2433),
+        color: AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppTheme.dividerColor),
       ),
       child: Column(
         children: [
@@ -219,7 +219,7 @@ class PhotoLockSheet extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.white12,
+              backgroundColor: Colors.black12,
               valueColor: AlwaysStoppedAnimation<Color>(color),
               minHeight: 6,
             ),
