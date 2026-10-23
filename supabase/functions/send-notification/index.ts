@@ -76,6 +76,30 @@ serve(async (req) => {
 
     const { token: accessToken } = await jwt.getAccessToken()
 
+    function formatNotificationBody(content: string): string {
+      if (!content) return ''
+      if (content.startsWith('[ACTIVITY]:')) {
+        try {
+          const data = JSON.parse(content.substring('[ACTIVITY]:'.length))
+          if (data.type === 'twoTruthsAndLie') return '🎮 Sent a game: Two Truths & a Lie'
+          if (data.type === 'wouldYouRather') return '🎮 Sent a game: Would You Rather'
+          return `🎮 Sent an icebreaker: ${data.title ?? 'Game'}`
+        } catch {
+          return '🎮 Sent a game'
+        }
+      }
+      if (content.startsWith('[SNAP]:')) {
+        return '🔥 Sent a snap'
+      }
+      if (content.startsWith('[REPLY]:')) {
+        const idx = content.indexOf('\n')
+        return idx !== -1 ? `↩️ ${content.substring(idx + 1)}` : '↩️ Replied to your message'
+      }
+      return content
+    }
+
+    const notificationBody = formatNotificationBody(record.content)
+
     // 6. Send notification to each token
     const results = await Promise.all(tokens.map(async (t) => {
       const fcmResponse = await fetch(
@@ -91,7 +115,7 @@ serve(async (req) => {
               token: t.token,
               data: {
                 title: senderName,
-                body: record.content,
+                body: notificationBody,
                 match_id: record.match_id,
                 sender_id: record.sender_id,
                 sender_name: senderName,

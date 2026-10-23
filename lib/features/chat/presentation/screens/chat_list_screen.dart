@@ -6,6 +6,7 @@ import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/chat/presentation/providers/chat_providers.dart';
 import 'package:student_dating_app/features/chat/presentation/widgets/empty_chat_state.dart';
 import 'package:student_dating_app/features/discovery/presentation/widgets/progressive_blur_image.dart';
+import 'package:student_dating_app/features/chat/domain/chat_message_payload.dart';
 
 class ChatListScreen extends ConsumerWidget {
   const ChatListScreen({super.key});
@@ -253,7 +254,11 @@ class ChatListScreen extends ConsumerWidget {
                       subtitle: Padding(
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Text(
-                          lastMessage.content,
+                          ChatMessageFormatter.formatPreview(
+                            lastMessage.content,
+                            senderId: lastMessage.senderId,
+                            currentUserId: currentUserId,
+                          ),
                           style: TextStyle(
                             color:
                                 isUnread

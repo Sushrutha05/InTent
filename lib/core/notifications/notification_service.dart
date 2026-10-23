@@ -1,10 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_dating_app/core/routing/app_router.dart';
+import 'package:student_dating_app/features/chat/domain/chat_message_payload.dart';
 import 'package:dio/dio.dart';
 
 @pragma('vm:entry-point')
@@ -14,8 +16,10 @@ Future<void> onBackgroundMessage(RemoteMessage message) async {
 
   final data = message.data;
   final title = data['title'] ?? 'New Message';
-  final body = data['body'] ?? '';
+  final rawBody = data['body'] ?? '';
+  final displayBody = ChatMessageFormatter.formatPreview(rawBody);
   final photoUrl = data['sender_photo'];
+  final matchId = data['match_id']?.toString();
 
   // Try to fetch user photo for native icons
   AndroidBitmap<Uint8List>? largeIcon;
@@ -49,7 +53,7 @@ Future<void> onBackgroundMessage(RemoteMessage message) async {
   const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
   await plugin.initialize(const InitializationSettings(android: androidInit));
 
-  await plugin.show(message.hashCode, title, body, details);
+  await plugin.show(message.hashCode, title, displayBody, details, payload: matchId);
 }
 
 class NotificationService {
@@ -58,6 +62,21 @@ class NotificationService {
   NotificationService._internal();
 
   static String? currentlyOpenChatId;
+
+  static void handleNotificationClick(String? payload) {
+    if (payload == null || payload.trim().isEmpty) {
+      debugPrint('Notification click: empty payload, navigating to home');
+      rootNavigatorKey.currentContext?.go('/');
+      return;
+    }
+    final cleanId = payload.trim();
+    debugPrint('Notification click: routing to $cleanId');
+    if (cleanId.startsWith('/')) {
+      rootNavigatorKey.currentContext?.push(cleanId);
+    } else {
+      rootNavigatorKey.currentContext?.push('/chat/$cleanId');
+    }
+  }
   bool _isInitialized = false;
 
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
@@ -104,12 +123,19 @@ class NotificationService {
     await _localNotifications.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse details) {
-        final matchId = details.payload;
-        if (matchId != null) {
-          rootNavigatorKey.currentContext?.push('/chat/$matchId');
-        }
+        handleNotificationClick(details.payload);
       },
     );
+
+    // Check if app was opened via local notification
+    final launchDetails =
+        await _localNotifications.getNotificationAppLaunchDetails();
+    if (launchDetails?.didNotificationLaunchApp == true &&
+        launchDetails?.notificationResponse?.payload != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        handleNotificationClick(launchDetails!.notificationResponse!.payload);
+      });
+    }
 
     // 3. Create Android notification channel
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
@@ -135,7 +161,7 @@ class NotificationService {
       final data = message.data;
       debugPrint('FCM: Payload data: $data');
 
-      final matchId = data['match_id'];
+      final matchId = data['match_id']?.toString();
 
       // Don't show notification if we are already in this specific chat
       if (matchId != null && matchId == currentlyOpenChatId) {
@@ -145,34 +171,35 @@ class NotificationService {
         return;
       }
 
-      // We now use native system alerts for a truly standard feel
+      // Format body cleanly so games, snaps, and replies look great
       final title = data['title'] ?? 'New Message';
-      final body = data['body'] ?? '';
+      final rawBody = data['body'] ?? '';
+      final displayBody = ChatMessageFormatter.formatPreview(rawBody);
       final photoUrl = data['sender_photo'];
 
       if (!kIsWeb) {
         debugPrint('FCM: Triggering RICH System Banner for: $title');
-        
+
         // Try to fetch the user's photo for the native icon
         AndroidBitmap<Uint8List>? largeIcon;
         if (photoUrl != null && photoUrl.toString().isNotEmpty) {
-           try {
-             final response = await Dio().get<Uint8List>(
+          try {
+            final response = await Dio().get<Uint8List>(
               photoUrl.toString(),
               options: Options(responseType: ResponseType.bytes),
             );
             if (response.data != null) {
               largeIcon = ByteArrayAndroidBitmap(response.data!);
             }
-           } catch (e) {
-             debugPrint('FCM: Failed to fetch notification photo: $e');
-           }
+          } catch (e) {
+            debugPrint('FCM: Failed to fetch notification photo: $e');
+          }
         }
 
         _localNotifications.show(
           message.hashCode,
           title,
-          body,
+          displayBody,
           NotificationDetails(
             android: AndroidNotificationDetails(
               'high_importance_channel',
@@ -187,6 +214,25 @@ class NotificationService {
         );
       }
     });
+
+    // 5. Handle tapping notification when app is in BACKGROUND
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('FCM: Notification tapped in background: ${message.data}');
+      handleNotificationClick(message.data['match_id']?.toString());
+    });
+
+    // 6. Handle tapping notification when app is TERMINATED (Cold start)
+    try {
+      final initialMessage = await _fcm.getInitialMessage();
+      if (initialMessage != null) {
+        debugPrint('FCM: Notification opened cold app: ${initialMessage.data}');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          handleNotificationClick(initialMessage.data['match_id']?.toString());
+        });
+      }
+    } catch (e) {
+      debugPrint('FCM: Failed reading initialMessage: $e');
+    }
 
     // 5. Setup Token Refresh Listener
     _fcm.onTokenRefresh.listen((newToken) {

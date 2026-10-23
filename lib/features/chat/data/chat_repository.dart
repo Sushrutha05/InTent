@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:student_dating_app/features/chat/domain/chat_models.dart';
 import 'package:student_dating_app/features/chat/domain/chat_activity_model.dart';
+import 'package:student_dating_app/features/chat/domain/chat_message_payload.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
 import 'package:flutter/foundation.dart';
 
@@ -295,6 +296,54 @@ class ChatRepository {
       debugPrint('Error boosting unblur progress: $e');
     }
   }
+  // Upload photo attachment for chat
+  Future<String> uploadChatImage(
+    String matchId,
+    String fileName,
+    Uint8List fileBytes,
+  ) async {
+    try {
+      final uniqueName = 'chat_${matchId}_${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      await _client.storage.from('profile_photos').uploadBinary(
+            uniqueName,
+            fileBytes,
+            fileOptions: const FileOptions(contentType: 'image/jpeg'),
+          );
+      return _client.storage.from('profile_photos').getPublicUrl(uniqueName);
+    } catch (e) {
+      debugPrint('Error uploading chat image: $e');
+      rethrow;
+    }
+  }
+
+  // Send photo or view-once snap
+  Future<void> sendSnap(
+    String matchId,
+    String senderId,
+    ChatSnapMeta snap,
+  ) async {
+    await sendMessage(matchId, senderId, snap.encode());
+  }
+
+  // Mark snap as viewed
+  Future<void> markSnapViewed(
+    String matchId,
+    String messageId,
+    ChatSnapMeta snap,
+    String viewerUserId,
+  ) async {
+    try {
+      final updatedSnap = snap.markViewed(viewerUserId);
+      await _client
+          .from('messages')
+          .update({'content': updatedSnap.encode()})
+          .eq('id', messageId);
+      debugPrint('Snap $messageId marked as viewed by $viewerUserId');
+    } catch (e) {
+      debugPrint('Error marking snap viewed: $e');
+    }
+  }
+
   int _calculateAge(String? dobString) {
     if (dobString == null) return 18;
     try {

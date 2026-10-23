@@ -5,6 +5,18 @@ All notable changes to the **InTent (Student Dating App)** project will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-10-23
+
+### 🐛 Fixed
+- **Clean Activity Previews**: Replaced raw `[ACTIVITY]:{"type":...}` JSON previews in the chat list and push notifications with friendly labels (e.g., `🎮 Sent a game: Two Truths & a Lie`).
+- **Notification Navigation**: Resolved the "Page not found" bug when clicking notifications from cold start or background. Added payload deep linking, missing `/chat` fallback redirect, and GoRouter `errorBuilder`.
+
+### ✨ Added
+- **Interactive Message Replies**: WhatsApp / Discord / LinkedIn-style swipe-to-reply and long-press reply. Features an embedded quote preview inside the bubble and a dismissible floating reply bar above the text input.
+- **Snapchat-Style Photos & Expiring Snaps**: Send high-resolution photos or view-once expiring Snaps with an interactive 10-second countdown viewer and opened status receipts.
+- **Campus Trust Period & Chat Streak Lock**: Photo and Snap sending unlocks after 14 days of friendship or maintaining a 7-day chat streak to protect student safety (includes a demo/testing unlock toggle).
+- **Overhauled Chat Window Design**: Redesigned chat bubbles with dark mode contrast, asymmetric curves, timestamps, double-check read receipts (`✓✓`), date separator capsules, and live streak badges in the header.
+
 ---
 
 ## [1.0.0] - 2026-10-23

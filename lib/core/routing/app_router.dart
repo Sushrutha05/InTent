@@ -38,6 +38,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: listenable,
+    errorBuilder: (context, state) {
+      debugPrint('GoRouter navigation error on location ${state.uri}: ${state.error}');
+      return const MainNavigationScreen();
+    },
 
     // Redirect logic for onboarding & security
     redirect: (context, state) async {
@@ -142,6 +146,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final profile = state.extra as ProfileCardModel;
           return MatchConfirmationScreen(matchedProfile: profile);
         },
+      ),
+      GoRoute(
+        path: '/chat',
+        redirect: (context, state) => '/',
       ),
       GoRoute(
         path: '/chat/:id',

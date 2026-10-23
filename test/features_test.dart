@@ -5,6 +5,8 @@ import 'package:student_dating_app/features/chat/domain/chat_activity_model.dart
 import 'package:student_dating_app/features/explore/domain/campus_spot_models.dart';
 import 'package:student_dating_app/features/intents/domain/incoming_signal_model.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
+import 'package:student_dating_app/features/chat/domain/chat_models.dart';
+import 'package:student_dating_app/features/chat/domain/chat_message_payload.dart';
 
 void main() {
   setUp(() {
@@ -146,4 +148,115 @@ void main() {
       expect(signal.matchesIntent('PASS'), isFalse);
     });
   });
+
+  group('Chat Message Previews and Payloads Tests', () {
+    test('Activity payloads format cleanly without raw JSON', () {
+      final activity = const ChatActivity(
+        type: ActivityType.twoTruthsAndLie,
+        title: 'Two Truths & a Lie',
+        creatorId: 'u1',
+      );
+      final raw = activity.encode();
+      final preview = ChatMessageFormatter.formatPreview(raw);
+      expect(preview.contains('{"type"'), isFalse);
+      expect(preview, contains('🎮 Sent a game'));
+    });
+
+    test('Chat replies encode and decode accurately', () {
+      final reply = const ChatReplyMeta(
+        replyToId: 'msg_99',
+        replyToSenderName: 'Maya',
+        replyToSnippet: 'Are you going to the library?',
+        actualMessage: 'Yes, heading there now!',
+      );
+
+      final encoded = reply.encode();
+      expect(ChatReplyMeta.isReply(encoded), isTrue);
+
+      final decoded = ChatReplyMeta.decode(encoded);
+      expect(decoded, isNotNull);
+      expect(decoded!.replyToId, 'msg_99');
+      expect(decoded.replyToSenderName, 'Maya');
+      expect(decoded.replyToSnippet, 'Are you going to the library?');
+      expect(decoded.actualMessage, 'Yes, heading there now!');
+
+      final preview = ChatMessageFormatter.formatPreview(encoded);
+      expect(preview, '↩️ Yes, heading there now!');
+    });
+
+    test('Chat snap marks viewed correctly', () {
+      final snap = const ChatSnapMeta(
+        imageUrl: 'https://example.com/photo.jpg',
+        isViewOnce: true,
+        viewedByUserIds: [],
+        caption: 'Campus sunset',
+      );
+
+      final encoded = snap.encode();
+      expect(ChatSnapMeta.isSnap(encoded), isTrue);
+
+      final decoded = ChatSnapMeta.decode(encoded);
+      expect(decoded, isNotNull);
+      expect(decoded!.isViewOnce, isTrue);
+      expect(decoded.caption, 'Campus sunset');
+
+      final viewed = decoded.markViewed('user_viewer');
+      expect(viewed.viewedByUserIds.contains('user_viewer'), isTrue);
+    });
+
+    test('StreakHelper calculates streaks and unlocks correctly', () {
+      final now = DateTime.now();
+      final messages = [
+        ChatMessage(
+          id: '1',
+          senderId: 'a',
+          content: 'Hi',
+          createdAt: now,
+        ),
+        ChatMessage(
+          id: '2',
+          senderId: 'b',
+          content: 'Hey',
+          createdAt: now.subtract(const Duration(days: 1)),
+        ),
+        ChatMessage(
+          id: '3',
+          senderId: 'a',
+          content: 'How are you?',
+          createdAt: now.subtract(const Duration(days: 2)),
+        ),
+      ];
+
+      final streak = StreakHelper.calculateStreak(messages);
+      expect(streak, 3);
+
+      // 3 days is locked without dev bypass
+      final locked = StreakHelper.isPhotoUnlocked(
+        matchCreatedAt: now.subtract(const Duration(days: 3)),
+        messages: messages,
+        unblurProgress: 0.3,
+        devBypass: false,
+      );
+      expect(locked, isFalse);
+
+      // Dev bypass immediately unlocks
+      final devUnlocked = StreakHelper.isPhotoUnlocked(
+        matchCreatedAt: now.subtract(const Duration(days: 3)),
+        messages: messages,
+        unblurProgress: 0.3,
+        devBypass: true,
+      );
+      expect(devUnlocked, isTrue);
+
+      // 14+ days of friendship unlocks
+      final durationUnlocked = StreakHelper.isPhotoUnlocked(
+        matchCreatedAt: now.subtract(const Duration(days: 15)),
+        messages: messages,
+        unblurProgress: 0.3,
+        devBypass: false,
+      );
+      expect(durationUnlocked, isTrue);
+    });
+  });
 }
+
