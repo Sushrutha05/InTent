@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0+1] - 2026-10-23
+## [1.0.0] - 2026-10-23
 
 ### 🚀 Highlights
 - **Campus Explore & Live Spots**: Real-time campus hotspot check-ins with 2-hour TTL expiration, active study sessions, and privacy/ghost mode.
