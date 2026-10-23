@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
@@ -9,12 +8,14 @@ class InteractiveSwipeCard extends StatelessWidget {
   final ProfileCardModel profile;
   final int dx;
   final int dy;
+  final bool hasIncomingSignal;
 
   const InteractiveSwipeCard({
     super.key,
     required this.profile,
     required this.dx,
     required this.dy,
+    this.hasIncomingSignal = false,
   });
 
   IconData _getIntentIcon(String intent) {
@@ -141,7 +142,10 @@ class InteractiveSwipeCard extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           // 1. Base Card
-          ProfileCard(profile: profile),
+          ProfileCard(
+            profile: profile,
+            hasIncomingSignal: hasIncomingSignal,
+          ),
 
           // 2. Soft Controlled Gradient Lighting
           if (intensity > 0.01)
@@ -162,7 +166,7 @@ class InteractiveSwipeCard extends StatelessWidget {
               ),
             ),
 
-          // 3. Direction-aware Glassmorphism Pill
+          // 3. Direction-aware Intent Pill (GPU optimized: no BackdropFilter or IntrinsicWidth during gesture tracking)
           if (intensity > 0.01)
             Align(
               alignment: Alignment(alignX, alignY),
@@ -170,47 +174,46 @@ class InteractiveSwipeCard extends StatelessWidget {
                 scale: pillScale,
                 child: Opacity(
                   opacity: overlayOpacity,
-                  child: IntrinsicWidth(
-                    child: ClipRRect(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.75),
                       borderRadius: BorderRadius.circular(40),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24), // Stronger blur
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 14,
-                          ),
-                          decoration: BoxDecoration(
-                            color: overlayColor.withValues(alpha: 0.08), // Barely visible tint for depth
-                            borderRadius: BorderRadius.circular(40),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.12), // Very subtle line
-                              width: 1.0,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _getIntentIcon(finalIntentText),
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                displayText,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                            ],
+                      border: Border.all(
+                        color: overlayColor.withValues(alpha: 0.7),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: overlayColor.withValues(alpha: 0.35),
+                          blurRadius: 16,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _getIntentIcon(finalIntentText),
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          displayText,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.2,
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ),

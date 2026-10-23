@@ -7,8 +7,13 @@ import 'package:student_dating_app/features/discovery/presentation/widgets/profi
 
 class ProfileCard extends StatefulWidget {
   final ProfileCardModel profile;
+  final bool hasIncomingSignal;
 
-  const ProfileCard({super.key, required this.profile});
+  const ProfileCard({
+    super.key,
+    required this.profile,
+    this.hasIncomingSignal = false,
+  });
 
   @override
   State<ProfileCard> createState() => _ProfileCardState();
@@ -77,6 +82,35 @@ class _ProfileCardState extends State<ProfileCard> {
               left: 20,
               child: IntentBadgeWidget(intent: widget.profile.primaryIntent),
             ),
+            // Top Right Secret Signal Badge
+            if (widget.hasIncomingSignal)
+              Positioned(
+                top: 20,
+                right: 20,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.75),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFF59E0B), width: 1.5),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.lock_rounded, size: 14, color: Color(0xFFF59E0B)),
+                      SizedBox(width: 4),
+                      Text(
+                        'Swiped You 🔒',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFF59E0B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             // Bottom Information
             Positioned(
               bottom: 24,

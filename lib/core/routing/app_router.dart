@@ -15,6 +15,10 @@ import 'package:student_dating_app/features/discovery/domain/profile_card_model.
 import 'package:student_dating_app/features/discovery/presentation/screens/full_screen_image_screen.dart';
 import 'package:student_dating_app/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:student_dating_app/features/profile/presentation/screens/settings_screen.dart';
+import 'package:student_dating_app/features/explore/presentation/screens/campus_explore_screen.dart';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:student_dating_app/core/services/onboarding_service.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -35,8 +39,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash',
     refreshListenable: listenable,
 
-    // Redirect logic for security (HIGH-1)
-    redirect: (context, state) {
+    // Redirect logic for onboarding & security
+    redirect: (context, state) async {
       final authState = ref.read(authProvider);
 
       final isAuthenticated = authState.maybeMap(
@@ -53,31 +57,43 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isSplash = state.matchedLocation == '/splash';
       final isLoggingIn = state.matchedLocation == '/login';
       final isSigningUp = state.matchedLocation == '/signup';
+      final isOnboarding = state.matchedLocation.startsWith('/onboarding');
 
       // 1. If we are just starting or loading:
-      // - If on login, let them stay so the button spinner can show and errors can be caught
-      // - Otherwise, show the splash screen
       if (isLoading) {
         if (isLoggingIn || isSigningUp || isSplash) return null;
         return '/splash';
       }
 
-      // Let the Splash Screen handle the initial routing and native splash removal
+      // Let the Splash Screen handle initial routing
       if (isSplash) return null;
 
       // 2. If NOT authenticated:
-      // - If trying to access guarded routes, force to login
-      // - If already on splash or login, stay there
       if (!isAuthenticated && !isLoading) {
-        if (isLoggingIn || isSigningUp || isSplash) return null;
+        if (isLoggingIn || isSigningUp) return null;
         return '/login';
       }
 
       // 3. If authenticated:
-      // - If on login or signup, redirect to splash so it can securely check onboarding status from DB
-      // - Otherwise, let them through
       if (isAuthenticated) {
-        if (isLoggingIn || isSigningUp) return '/splash';
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user != null) {
+          final bool onboarded = await OnboardingService.isOnboarded(user.id);
+
+          // If the user has already onboarded:
+          // Never allow them to see login, signup, splash, or onboarding
+          if (onboarded) {
+            if (isLoggingIn || isSigningUp || isOnboarding) {
+              return '/';
+            }
+          } else {
+            // First time login / not onboarded yet:
+            // Must complete onboarding
+            if (!isOnboarding) {
+              return '/onboarding/intent';
+            }
+          }
+        }
       }
 
       return null;
@@ -173,6 +189,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/explore',
+        name: 'explore',
+        builder: (context, state) => const CampusExploreScreen(),
       ),
     ],
   );

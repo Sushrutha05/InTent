@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:student_dating_app/core/services/onboarding_service.dart';
 import 'package:student_dating_app/features/onboarding/domain/onboarding_state.dart';
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
@@ -17,31 +18,27 @@ class ProfileRepository {
     final user = _client.auth.currentUser;
     if (user == null) throw Exception('No authenticated user found.');
 
-    List<String> uploadedPhotoUrls = [];
-
-    // 1. Upload Photos to Storage Bucket
-    for (int i = 0; i < state.localPhotoPaths.length; i++) {
-      final path = state.localPhotoPaths[i];
-      // In a real app with image_picker, path would be a valid file path.
-      // We simulate success here if it's a mock path.
-      if (!path.startsWith('mock_photo')) {
-        final file = File(path);
+    // 1. Upload Photos to Storage Bucket in Parallel
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final uploadFutures = state.localPhotoPaths.asMap().entries.map((entry) async {
+      final i = entry.key;
+      final path = entry.value;
+      final file = File(path);
+      if (await file.exists()) {
         final extension = path.split('.').last;
-        final fileName =
-            '${user.id}/${DateTime.now().millisecondsSinceEpoch}_$i.$extension';
+        final fileName = '${user.id}/${timestamp}_$i.$extension';
 
         debugPrint('Uploading to profile_photos: $fileName');
         await _client.storage.from('profile_photos').upload(fileName, file);
         debugPrint('Upload successful for $fileName');
 
-        final publicUrl = _client.storage
-            .from('profile_photos')
-            .getPublicUrl(fileName);
-        uploadedPhotoUrls.add(publicUrl);
-      } else {
-        uploadedPhotoUrls.add('https://mock-image-url.com/${user.id}/$i.jpg');
+        return _client.storage.from('profile_photos').getPublicUrl(fileName);
       }
-    }
+      return null;
+    });
+
+    final results = await Future.wait(uploadFutures);
+    final List<String> uploadedPhotoUrls = results.whereType<String>().toList();
 
     // 2. Insert into Profiles Table
     debugPrint('Inserting profile data: ${user.id}');
@@ -60,6 +57,7 @@ class ProfileRepository {
     };
 
     await _client.from('profiles').upsert(profileData);
+    await OnboardingService.markOnboarded(user.id);
     debugPrint('Successfully saved profile data!');
   }
 }

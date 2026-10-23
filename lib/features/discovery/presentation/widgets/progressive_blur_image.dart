@@ -23,36 +23,41 @@ class ProgressiveBlurImage extends StatelessWidget {
     // If blurLevel is 1.0, sigma is maxBlurSigma (very blurry).
     final double sigma = maxBlurSigma * blurLevel.clamp(0.0, 1.0);
 
+    Widget image = CachedNetworkImage(
+      imageUrl: imageUrl,
+      fit: BoxFit.cover,
+      memCacheHeight: 400,
+      memCacheWidth: 400,
+      placeholder:
+          (context, url) => Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Container(color: Colors.white),
+          ),
+      errorWidget:
+          (context, url, error) => Container(
+            color: AppTheme.surfaceColor,
+            child: const Center(
+              child: Icon(Icons.error, color: AppTheme.textSecondary),
+            ),
+          ),
+    );
+
+    if (sigma > 0) {
+      image = ImageFiltered(
+        imageFilter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+        child: image,
+      );
+    }
+
     return Stack(
       fit: StackFit.expand,
       children: [
-        // The underlying image
-        CachedNetworkImage(
-          imageUrl: imageUrl,
-          fit: BoxFit.cover,
-          placeholder:
-              (context, url) => Shimmer.fromColors(
-                baseColor: Colors.grey[300]!,
-                highlightColor: Colors.grey[100]!,
-                child: Container(color: Colors.white),
-              ),
-          errorWidget:
-              (context, url, error) => Container(
-                color: AppTheme.surfaceColor,
-                child: const Center(
-                  child: Icon(Icons.error, color: AppTheme.textSecondary),
-                ),
-              ),
-        ),
-
-        // The blur effect, applied if sigma > 0
+        image,
         if (sigma > 0)
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-            child: Container(
-              // A slight dark tint to make text readable over the blur
-              color: Colors.black.withValues(alpha: 0.2 * blurLevel),
-            ),
+          Container(
+            // A slight dark tint to make text readable over the blur
+            color: Colors.black.withValues(alpha: 0.2 * blurLevel),
           ),
       ],
     );

@@ -7,6 +7,7 @@ import 'package:student_dating_app/features/discovery/domain/services/exposure_b
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/auth/presentation/providers/auth_provider.dart';
+import 'package:student_dating_app/core/services/swipe_queue_service.dart';
 
 part 'discovery_provider.g.dart';
 
@@ -34,10 +35,14 @@ class DiscoveryNotifier extends _$DiscoveryNotifier {
       return [];
     }
 
-    // FIX: Update last_active on every discovery load so the recency score
-    // (+10 in Edge Function) and DB ordering (ORDER BY last_active DESC)
+    // Update last_active on every discovery load so the recency score
     // stay accurate for browsing users. Fire-and-forget — never block the feed.
     supabase.rpc('update_last_active').then((_) {}).catchError((_) {});
+
+    // Automatically sync any pending offline swipes in the background
+    SwipeQueueService.processQueue().then((synced) {
+      if (synced > 0) debugPrint('[Discovery] Synced $synced offline swipes on feed refresh.');
+    }).catchError((_) {});
 
     try {
       // 1. Invoke the Edge Function 'recommend-users'
@@ -139,41 +144,71 @@ class DiscoveryNotifier extends _$DiscoveryNotifier {
     }
   }
 
-  Future<void> handleRomantic(ProfileCardModel profile) async {
-    await _recordInteraction(profile.id, 'ROMANTIC');
+  Future<bool> handleRomantic(ProfileCardModel profile) async {
+    return await _recordInteraction(profile.id, 'ROMANTIC');
   }
 
-  Future<void> handlePass(ProfileCardModel profile) async {
-    await _recordInteraction(profile.id, 'PASS');
+  Future<bool> handlePass(ProfileCardModel profile) async {
+    return await _recordInteraction(profile.id, 'PASS');
   }
 
-  Future<void> handleFriendship(ProfileCardModel profile) async {
-    await _recordInteraction(profile.id, 'FRIENDSHIP');
+  Future<bool> handleFriendship(ProfileCardModel profile) async {
+    return await _recordInteraction(profile.id, 'FRIENDSHIP');
   }
 
-  Future<void> handleCollaborate(ProfileCardModel profile) async {
-    await _recordInteraction(profile.id, 'COLLABORATE');
+  Future<bool> handleCollaborate(ProfileCardModel profile) async {
+    return await _recordInteraction(profile.id, 'COLLABORATE');
   }
 
-  Future<void> _recordInteraction(String targetId, String actionType) async {
+  Future<bool> _recordInteraction(String targetId, String actionType) async {
     final supabase = Supabase.instance.client;
     final currentUser = supabase.auth.currentUser;
-    if (currentUser == null) return;
+    if (currentUser == null) return false;
 
-    try {
-      await supabase.from('interactions').insert({
-        'actor_id': currentUser.id,
-        'target_id': targetId,
-        'action_type': actionType,
-        'created_at': DateTime.now().toIso8601String(),
-      });
-      debugPrint('Recorded $actionType for $targetId in Supabase');
+    // 1. Enqueue swipe persistently locally so it can never be lost offline
+    await SwipeQueueService.enqueueSwipe(
+      actorId: currentUser.id,
+      targetId: targetId,
+      actionType: actionType,
+    );
 
-      // Record the interaction in DB. We don't remove it from local state immediately
-      // to avoid 'skipping' cards in the Swiper. The DB will filter these out on next fetch.
-    } catch (e) {
-      debugPrint('Error recording $actionType: $e');
+    // 2. Immediately attempt to process and flush queue
+    SwipeQueueService.processQueue().then((synced) {
+      if (synced > 0) {
+        debugPrint('Recorded & synced $actionType for $targetId (Total synced: $synced)');
+      }
+    }).catchError((e) {
+      debugPrint('Network error recording $actionType: $e. Swipe safely queued locally.');
+    });
+
+    // 3. Mutual blind intent match check
+    if (actionType != 'PASS') {
+      try {
+        final priorInteraction = await supabase
+            .from('interactions')
+            .select('action_type')
+            .eq('actor_id', targetId)
+            .eq('target_id', currentUser.id)
+            .maybeSingle();
+
+        if (priorInteraction != null && priorInteraction['action_type'] == actionType) {
+          // Both chose the SAME intent! Confirmed match!
+          try {
+            await supabase.from('matches').insert({
+              'user1_id': currentUser.id,
+              'user2_id': targetId,
+              'intent_type': actionType,
+              'unblur_progress': 0.0,
+            });
+          } catch (_) {}
+          return true;
+        }
+      } catch (e) {
+        debugPrint('Error checking mutual intent match: $e');
+      }
     }
+
+    return false;
   }
 
   Future<void> blockUser(String targetId, {String? reason}) async {

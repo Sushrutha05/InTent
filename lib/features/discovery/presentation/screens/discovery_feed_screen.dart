@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
 import 'package:student_dating_app/features/discovery/presentation/providers/discovery_provider.dart';
@@ -7,6 +8,7 @@ import 'package:student_dating_app/features/discovery/presentation/widgets/inter
 import 'package:student_dating_app/features/discovery/presentation/widgets/empty_discovery_state.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:student_dating_app/core/widgets/shimmer_loading.dart';
+import 'package:student_dating_app/features/intents/presentation/providers/intents_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -31,6 +33,8 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
   Widget build(BuildContext context) {
     final discoveryState = ref.watch(discoveryNotifierProvider);
     final currentFilter = ref.watch(discoveryFilterProvider);
+    final incomingSignals = ref.watch(incomingSignalsProvider).value ?? [];
+    final incomingSenderIds = incomingSignals.map((s) => s.senderId).toSet();
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -47,6 +51,45 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
         centerTitle: false, // Align branding to the left for a modern social media header
         backgroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Center(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () => context.push('/explore'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.explore_rounded, color: AppTheme.primaryColor, size: 16),
+                        SizedBox(width: 4),
+                        Text(
+                          'Radar',
+                          style: TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
           child: Container(color: AppTheme.dividerColor, height: 1.0),
@@ -213,21 +256,31 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
                               if (direction == CardSwiperDirection.right) {
                                 // Reflective Romantic Swipe - wait for user to pick a reason
                                 final reason = await _showReflectiveBottomSheet(profile);
-                                if (reason != null && mounted) {
-                                  // Heavy feedback for a match!
+                                if (reason != null && context.mounted) {
                                   HapticFeedback.heavyImpact();
-                                  notifier.handleRomantic(profile);
+                                  final isMatch = await notifier.handleRomantic(profile);
+                                  if (isMatch && context.mounted) {
+                                    context.push('/match', extra: profile);
+                                  }
                                   return true; // Swipe succeeds
                                 } else {
                                   // Cancelled, prevent the swipe
                                   return false;
                                 }
                               } else if (direction == CardSwiperDirection.left) {
-                                notifier.handlePass(profile);
+                                await notifier.handlePass(profile);
                               } else if (direction == CardSwiperDirection.top) {
-                                notifier.handleCollaborate(profile);
+                                final isMatch = await notifier.handleCollaborate(profile);
+                                if (isMatch && context.mounted) {
+                                  HapticFeedback.heavyImpact();
+                                  context.push('/match', extra: profile);
+                                }
                               } else if (direction == CardSwiperDirection.bottom) {
-                                notifier.handleFriendship(profile);
+                                final isMatch = await notifier.handleFriendship(profile);
+                                if (isMatch && context.mounted) {
+                                  HapticFeedback.heavyImpact();
+                                  context.push('/match', extra: profile);
+                                }
                               }
                               return true;
                             },
@@ -241,12 +294,14 @@ class _DiscoveryFeedScreenState extends ConsumerState<DiscoveryFeedScreen> {
                                 return const SizedBox.shrink();
                               }
                               final profile = swipeItems[index];
+                              final hasSignal = incomingSenderIds.contains(profile.id);
 
                               return InteractiveSwipeCard(
                                 key: ValueKey(profile.id),
                                 profile: profile,
                                 dx: percentThresholdX,
                                 dy: percentThresholdY,
+                                hasIncomingSignal: hasSignal,
                               );
                             },
                           ),

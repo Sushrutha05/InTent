@@ -17,13 +17,16 @@ class UserProfileScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: profileState.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryColor),
-        ),
+        loading:
+            () => const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryColor),
+            ),
         error: (err, st) => Center(child: Text('Error: $err')),
         data: (profile) {
           return CustomScrollView(
-            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
             slivers: [
               // Premium App Bar
               SliverAppBar(
@@ -65,11 +68,14 @@ class UserProfileScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              
+
               // Profile Content
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 16.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -81,7 +87,9 @@ class UserProfileScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(32),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.08,
+                              ),
                               blurRadius: 30,
                               spreadRadius: 0,
                               offset: const Offset(0, 10),
@@ -103,34 +111,50 @@ class UserProfileScreen extends ConsumerWidget {
                                     color: AppTheme.surfaceSolid,
                                   ),
                                   clipBehavior: Clip.antiAlias,
-                                  child: profile.photoUrls.isNotEmpty
-                                      ? CachedNetworkImage(
-                                          imageUrl: profile.photoUrls.first,
-                                          fit: BoxFit.cover,
-                                          placeholder: (context, url) => Shimmer.fromColors(
-                                            baseColor: Colors.grey[200]!,
-                                            highlightColor: Colors.grey[50]!,
-                                            child: Container(color: Colors.white),
+                                  child:
+                                      profile.photoUrls.isNotEmpty
+                                          ? CachedNetworkImage(
+                                            memCacheHeight: 150,
+                                            memCacheWidth: 150,
+                                            imageUrl: profile.photoUrls.first,
+                                            fit: BoxFit.cover,
+                                            placeholder:
+                                                (context, url) =>
+                                                    Shimmer.fromColors(
+                                                      baseColor:
+                                                          Colors.grey[200]!,
+                                                      highlightColor:
+                                                          Colors.grey[50]!,
+                                                      child: Container(
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    const Icon(
+                                                      Icons.error_outline,
+                                                      color: AppTheme.textMuted,
+                                                    ),
+                                          )
+                                          : const Center(
+                                            child: Icon(
+                                              Icons.person_rounded,
+                                              size: 100,
+                                              color: AppTheme.textMuted,
+                                            ),
                                           ),
-                                          errorWidget: (context, url, error) => const Icon(
-                                            Icons.error_outline,
-                                            color: AppTheme.textMuted,
-                                          ),
-                                        )
-                                      : const Center(
-                                          child: Icon(
-                                            Icons.person_rounded,
-                                            size: 100,
-                                            color: AppTheme.textMuted,
-                                          ),
-                                        ),
                                 ),
                               ),
                             ),
-                            
+
                             // Basic Info
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                              padding: const EdgeInsets.fromLTRB(
+                                20,
+                                16,
+                                20,
+                                24,
+                              ),
                               child: Column(
                                 children: [
                                   Text(
@@ -144,9 +168,14 @@ class UserProfileScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 8),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                      color: AppTheme.primaryColor.withValues(
+                                        alpha: 0.1,
+                                      ),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Row(
@@ -178,7 +207,7 @@ class UserProfileScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: 32),
 
                       // Bio Section (Read Only)
@@ -200,7 +229,9 @@ class UserProfileScreen extends ConsumerWidget {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
-                              color: AppTheme.dividerColor.withValues(alpha: 0.5),
+                              color: AppTheme.dividerColor.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
                             boxShadow: [
                               BoxShadow(
@@ -251,7 +282,9 @@ class UserProfileScreen extends ConsumerWidget {
                                     color: AppTheme.surfaceSolid,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.05),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
                                         blurRadius: 15,
                                         offset: const Offset(0, 8),
                                       ),
@@ -261,15 +294,17 @@ class UserProfileScreen extends ConsumerWidget {
                                   child: CachedNetworkImage(
                                     imageUrl: photoUrl,
                                     fit: BoxFit.cover,
-                                    placeholder: (context, url) => Shimmer.fromColors(
-                                      baseColor: Colors.grey[200]!,
-                                      highlightColor: Colors.grey[50]!,
-                                      child: Container(color: Colors.white),
-                                    ),
-                                    errorWidget: (context, url, error) => const Icon(
-                                      Icons.error_outline,
-                                      color: AppTheme.textMuted,
-                                    ),
+                                    placeholder:
+                                        (context, url) => Shimmer.fromColors(
+                                          baseColor: Colors.grey[200]!,
+                                          highlightColor: Colors.grey[50]!,
+                                          child: Container(color: Colors.white),
+                                        ),
+                                    errorWidget:
+                                        (context, url, error) => const Icon(
+                                          Icons.error_outline,
+                                          color: AppTheme.textMuted,
+                                        ),
                                   ),
                                 ),
                               );
@@ -277,8 +312,10 @@ class UserProfileScreen extends ConsumerWidget {
                           ),
                         ),
                       ],
-                      
-                      const SizedBox(height: 120), // Bottom padding for navigation bar
+
+                      const SizedBox(
+                        height: 120,
+                      ), // Bottom padding for navigation bar
                     ],
                   ),
                 ),

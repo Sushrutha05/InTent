@@ -35,15 +35,16 @@ class ChatListScreen extends ConsumerWidget {
           child: Container(color: AppTheme.dividerColor, height: 1.0),
         ),
         automaticallyImplyLeading: false,
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: AppTheme.textSecondary,
-                ),
-                onPressed: () => context.pop(),
-              )
-            : null,
+        leading:
+            Navigator.canPop(context)
+                ? IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: AppTheme.textSecondary,
+                  ),
+                  onPressed: () => context.pop(),
+                )
+                : null,
       ),
       body: channelsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -123,11 +124,11 @@ class ChatListScreen extends ConsumerWidget {
                                                         .matchedUser
                                                         .photoUrls
                                                         .isNotEmpty
-                                                  ? match
-                                                      .matchedUser
-                                                      .photoUrls
-                                                      .first
-                                                  : AppTheme.defaultUserImage,
+                                                    ? match
+                                                        .matchedUser
+                                                        .photoUrls
+                                                        .first
+                                                    : AppTheme.defaultUserImage,
                                             blurLevel:
                                                 AppTheme.getRevealBlurLevel(
                                                   match.unblurProgress,

@@ -21,22 +21,7 @@ class MainNavigationScreen extends ConsumerStatefulWidget {
 
 class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   // Keeps track of which tabs have been visited so we only build them once
-  final Set<int> _loadedIndexes = {};
-
-  @override
-  void initState() {
-    super.initState();
-    // Background Widget Pre-building:
-    // Let the first tab load instantly, then silently build the remaining tabs 250ms later
-    // so they are instantly ready when the user taps them!
-    Future.delayed(const Duration(milliseconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _loadedIndexes.addAll([0, 1, 2, 3]);
-        });
-      }
-    });
-  }
+  final Set<int> _loadedIndexes = {0};
 
   // Screens cached in IndexedStack to preserve their full visual and scroll state
   final List<Widget> _screens = const [

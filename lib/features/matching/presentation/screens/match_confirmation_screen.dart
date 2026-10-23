@@ -4,13 +4,21 @@ import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/discovery/domain/profile_card_model.dart';
 import 'package:student_dating_app/features/discovery/presentation/widgets/progressive_blur_image.dart';
 
-class MatchConfirmationScreen extends StatelessWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:student_dating_app/features/profile/presentation/providers/user_profile_provider.dart';
+
+class MatchConfirmationScreen extends ConsumerWidget {
   final ProfileCardModel matchedProfile;
 
   const MatchConfirmationScreen({super.key, required this.matchedProfile});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUserProfile = ref.watch(userProfileProvider).value;
+    final currentUserPhoto = (currentUserProfile?.photoUrls.isNotEmpty ?? false)
+        ? currentUserProfile!.photoUrls.first
+        : AppTheme.defaultUserImage;
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -64,10 +72,9 @@ class MatchConfirmationScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Current User (Placeholder for now, in a real app would be the auth user's profile)
+                      // Current User
                       _buildAvatar(
-                        imageUrl:
-                            AppTheme.defaultUserImage, // Mock current user
+                        imageUrl: currentUserPhoto,
                         blurLevel: 0.0,
                       ),
                       const SizedBox(width: -20), // Overlap them slightly
@@ -88,10 +95,35 @@ class MatchConfirmationScreen extends StatelessWidget {
 
                   // Action Buttons
                   ElevatedButton(
-                    onPressed: () {
-                      // Navigate to chat
-                      // GoRouter path will be e.g. /chat/:id
-                      context.pushReplacement('/chat/${matchedProfile.id}');
+                    onPressed: () async {
+                      final supabase = Supabase.instance.client;
+                      final currentUser = supabase.auth.currentUser;
+                      if (currentUser == null) {
+                        context.pop();
+                        return;
+                      }
+
+                      try {
+                        final match = await supabase
+                            .from('matches')
+                            .select('id')
+                            .or(
+                              'and(user1_id.eq.${currentUser.id},user2_id.eq.${matchedProfile.id}),and(user1_id.eq.${matchedProfile.id},user2_id.eq.${currentUser.id})',
+                            )
+                            .order('created_at', ascending: false)
+                            .limit(1)
+                            .maybeSingle();
+
+                        if (match != null && context.mounted) {
+                          context.pushReplacement('/chat/${match['id']}');
+                        } else if (context.mounted) {
+                          context.pushReplacement('/home');
+                        }
+                      } catch (_) {
+                        if (context.mounted) {
+                          context.pushReplacement('/home');
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size.fromHeight(60),

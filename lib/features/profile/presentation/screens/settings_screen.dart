@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
 import 'package:student_dating_app/features/auth/presentation/providers/auth_provider.dart';
 
@@ -14,6 +15,26 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _pushNotificationsEnabled = true;
+  String _appVersion = '1.0.0+1';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppInfo();
+  }
+
+  Future<void> _loadAppInfo() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _appVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to get package info: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +86,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         color: AppTheme.textPrimary,
                       ),
                     ),
-                    activeColor: AppTheme.primaryColor,
+                    activeThumbColor: AppTheme.primaryColor,
                     value: _pushNotificationsEnabled,
                     onChanged: (val) {
                       setState(() {
@@ -164,9 +185,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         color: AppTheme.textPrimary,
                       ),
                     ),
-                    trailing: const Text(
-                      '1.0.0',
-                      style: TextStyle(
+                    trailing: Text(
+                      _appVersion,
+                      style: const TextStyle(
                         fontSize: 14,
                         color: AppTheme.textSecondary,
                       ),

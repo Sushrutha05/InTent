@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
+import 'package:student_dating_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:student_dating_app/features/onboarding/domain/onboarding_state.dart';
 import 'package:student_dating_app/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:student_dating_app/core/widgets/bouncy_button.dart';
@@ -10,38 +11,67 @@ import 'package:google_fonts/google_fonts.dart';
 class IntentSelectionScreen extends ConsumerWidget {
   const IntentSelectionScreen({super.key});
 
+  Future<void> _handleBack(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref.read(authProvider.notifier).logout();
+    } catch (e) {
+      debugPrint('Error logging out during onboarding back: $e');
+    }
+    ref.invalidate(onboardingNotifierProvider);
+    if (context.mounted) {
+      context.go('/login');
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(onboardingNotifierProvider);
     final notifier = ref.read(onboardingNotifierProvider.notifier);
 
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Progress indicator
-              Row(
-                children: List.generate(
-                  3,
-                  (index) => Expanded(
-                    child: Container(
-                      margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color:
-                            index <= 0
-                                ? AppTheme.primaryColor
-                                : AppTheme.dividerColor,
-                        borderRadius: BorderRadius.circular(2),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppTheme.textPrimary,
+          ),
+          onPressed: () => _handleBack(context, ref),
+        ),
+      ),
+      body: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          _handleBack(context, ref);
+        },
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Progress indicator
+                Row(
+                  children: List.generate(
+                    3,
+                    (index) => Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color:
+                              index <= 0
+                                  ? AppTheme.primaryColor
+                                  : AppTheme.dividerColor,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
               Text(
                 'What brings you here?',
@@ -147,7 +177,8 @@ class IntentSelectionScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }
 

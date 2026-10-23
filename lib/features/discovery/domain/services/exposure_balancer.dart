@@ -20,12 +20,25 @@ class ExposureBalancer extends _$ExposureBalancer {
     final profileIds = profiles.map((p) => p.id).toList();
 
     try {
-      // Note: Supabase RPC is usually better for batch updates, but we'll use a loop or logic here
-      for (final id in profileIds) {
-        // Increment exposure count - optimistic background task
-        supabase
-            .rpc('increment_exposure', params: {'profile_id': id})
-            .onError((error, stackTrace) => null);
+      // 1. Try single batch RPC call
+      try {
+        await supabase.rpc(
+          'batch_increment_exposure',
+          params: {'profile_ids': profileIds},
+        );
+        return;
+      } catch (_) {
+        // Fall back to chunked calls if batch RPC is not available yet
+      }
+
+      // 2. Concurrency-bounded chunked execution (5 at a time) to prevent socket pool exhaustion
+      for (int i = 0; i < profileIds.length; i += 5) {
+        final chunk = profileIds.skip(i).take(5);
+        await Future.wait(
+          chunk.map((id) => supabase
+              .rpc('increment_exposure', params: {'profile_id': id})
+              .onError((_, __) => null)),
+        );
       }
     } catch (_) {
       // Silently fail, analytics/exposure tracking shouldn't break the app

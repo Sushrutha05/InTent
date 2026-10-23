@@ -223,14 +223,13 @@ class NotificationService {
           deviceType = 'ios';
         }
 
-        final response =
-            await Supabase.instance.client.from('fcm_tokens').upsert({
-              'user_id': user.id,
-              'token': token,
-              'device_type': deviceType,
-            }).select();
+        await Supabase.instance.client.from('fcm_tokens').upsert({
+          'user_id': user.id,
+          'token': token,
+          'device_type': deviceType,
+        });
 
-        debugPrint('FCM: Token saved successfully to Supabase: $response');
+        debugPrint('FCM: Token saved successfully to Supabase');
       } catch (e) {
         debugPrint('FCM: Error saving token to Supabase: $e');
       }

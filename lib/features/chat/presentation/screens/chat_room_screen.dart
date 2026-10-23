@@ -9,6 +9,9 @@ import 'package:student_dating_app/features/chat/domain/services/intent_shift_se
 import 'package:student_dating_app/features/discovery/presentation/widgets/progressive_blur_image.dart';
 import 'package:student_dating_app/features/discovery/presentation/widgets/profile_detail_bottom_sheet.dart';
 import 'package:student_dating_app/features/discovery/presentation/providers/discovery_provider.dart';
+import 'package:student_dating_app/features/chat/domain/chat_activity_model.dart';
+import 'package:student_dating_app/features/chat/presentation/widgets/chat_activity_bubble.dart';
+import 'package:student_dating_app/features/chat/presentation/widgets/chat_activities_sheet.dart';
 
 import 'package:student_dating_app/core/notifications/notification_service.dart';
 
@@ -81,7 +84,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
         _matchedUser = ProfileCardModel(
           id: profileResponse['id'] as String,
           name: profileResponse['first_name'] as String? ?? 'Unknown',
-          age: 20,
+          age: _calculateAge(profileResponse['date_of_birth'] as String?),
           university: profileResponse['university'] as String? ?? '',
           major: profileResponse['major'] as String? ?? '',
           primaryIntent:
@@ -96,6 +99,22 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       });
     } catch (e) {
       debugPrint('Error fetching specific chat data: $e');
+    }
+  }
+
+  int _calculateAge(String? dobString) {
+    if (dobString == null) return 18;
+    try {
+      final dob = DateTime.parse(dobString);
+      final today = DateTime.now();
+      int age = today.year - dob.year;
+      if (today.month < dob.month ||
+          (today.month == dob.month && today.day < dob.day)) {
+        age--;
+      }
+      return age;
+    } catch (_) {
+      return 18;
     }
   }
 
@@ -122,7 +141,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
         );
       }
     } catch (e) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
@@ -321,6 +340,52 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                     final message = messages[index];
                     final isMe = message.senderId == currentUserId;
 
+                    // If this message is an in-chat activity / mini-game:
+                    if (ChatActivity.isActivity(message.content)) {
+                      final activity = ChatActivity.decode(message.content);
+                      if (activity != null) {
+                        return ChatActivityBubble(
+                          activity: activity,
+                          messageId: message.id,
+                          matchId: widget.chatId,
+                          currentUserId: currentUserId ?? '',
+                          onGuessLie: (guessedIndex) async {
+                            final isLie = guessedIndex == activity.correctIndex;
+                            final updated = activity.copyWith(
+                              isCompleted: true,
+                              responses: {
+                                ...activity.responses,
+                                'guessedIndex': guessedIndex,
+                                'guessedBy': currentUserId,
+                                'isCorrect': isLie,
+                              },
+                            );
+                            await ref.read(chatRepositoryProvider).updateActivityResponse(
+                              widget.chatId,
+                              message.id,
+                              updated,
+                              boost: activity.blurBoost,
+                            );
+                          },
+                          onVoteWouldYouRather: (choice) async {
+                            final updatedResponses = Map<String, dynamic>.from(activity.responses);
+                            updatedResponses[currentUserId ?? ''] = choice;
+                            final bool nowCompleted = updatedResponses.length >= 2;
+                            final updated = activity.copyWith(
+                              responses: updatedResponses,
+                              isCompleted: nowCompleted,
+                            );
+                            await ref.read(chatRepositoryProvider).updateActivityResponse(
+                              widget.chatId,
+                              message.id,
+                              updated,
+                              boost: activity.blurBoost,
+                            );
+                          },
+                        );
+                      }
+                    }
+
                     return Align(
                       alignment:
                           isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -377,10 +442,24 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(
-                      Icons.add_circle_outline_rounded,
-                      color: AppTheme.textSecondary,
+                      Icons.sports_esports_rounded,
+                      color: AppTheme.primaryColor,
                     ),
-                    onPressed: () {},
+                    tooltip: 'In-Chat Activities & Games',
+                    onPressed: () {
+                      if (currentUserId == null) return;
+                      ChatActivitiesSheet.show(
+                        context,
+                        currentUserId: currentUserId,
+                        onSendActivity: (activity) async {
+                          await ref.read(chatRepositoryProvider).sendActivity(
+                            widget.chatId,
+                            currentUserId,
+                            activity,
+                          );
+                        },
+                      );
+                    },
                   ),
                   Expanded(
                     child: TextField(

@@ -31,7 +31,12 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
     }
 
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxHeight: 1920,
+        maxWidth: 1080,
+        imageQuality: 80,
+      );
       if (image != null) {
         notifier.addPhoto(image.path);
       }
@@ -150,21 +155,10 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
                                   color: AppTheme.surfaceColor.withValues(
                                     alpha: 0.5,
                                   ),
-                                  child:
-                                      state.localPhotoPaths[index].startsWith(
-                                            'mock_photo_',
-                                          )
-                                          ? const Center(
-                                            child: Icon(
-                                              Icons.image,
-                                              color: AppTheme.textSecondary,
-                                              size: 40,
-                                            ),
-                                          )
-                                          : Image.file(
-                                            File(state.localPhotoPaths[index]),
-                                            fit: BoxFit.cover,
-                                          ),
+                                  child: Image.file(
+                                    File(state.localPhotoPaths[index]),
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
                             if (!isOccupied)

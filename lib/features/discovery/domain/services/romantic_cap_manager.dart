@@ -24,7 +24,7 @@ class RomanticCapManager extends _$RomanticCapManager {
           .from('matches')
           .select('id, intent_type, last_message_at')
           .or('user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}')
-          .eq('intent_type', 'Romantic');
+          .inFilter('intent_type', ['ROMANTIC', 'Romantic']);
 
       final activeMatches =
           (response as List<dynamic>).where((match) {

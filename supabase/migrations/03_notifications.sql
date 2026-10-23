@@ -10,13 +10,18 @@ CREATE TABLE IF NOT EXISTS public.fcm_tokens (
 ALTER TABLE public.fcm_tokens ENABLE ROW LEVEL SECURITY;
 
 -- Allow users to manage their own tokens
+CREATE POLICY "Users can view their own tokens"
+  ON public.fcm_tokens FOR SELECT
+  USING (auth.uid() = user_id);
+
 CREATE POLICY "Users can insert their own tokens"
   ON public.fcm_tokens FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Users can update their own tokens"
   ON public.fcm_tokens FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (true)
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Users can delete their own tokens"
   ON public.fcm_tokens FOR DELETE

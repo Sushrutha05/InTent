@@ -11,15 +11,6 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
-
-    // 🔥 Force enable buildConfig in all modules
-    afterEvaluate {
-        if (project.plugins.hasPlugin("com.android.library") || project.plugins.hasPlugin("com.android.application")) {
-            project.extensions.configure<com.android.build.gradle.BaseExtension>("android") {
-                buildFeatures.buildConfig = true
-            }
-        }
-    }
 }
 /*
 subprojects {
@@ -28,15 +19,4 @@ subprojects {
 */
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
-}
-
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("com.google.gms:google-services:4.3.15")
-        classpath("com.android.tools.build:gradle:7.4.0")
-    }
 }

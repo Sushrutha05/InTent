@@ -1,13 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:student_dating_app/core/theme/app_theme.dart';
-import 'package:student_dating_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:student_dating_app/features/profile/presentation/providers/user_profile_provider.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -25,7 +23,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   void initState() {
     super.initState();
     _bioController = TextEditingController();
-    
+
     // Initialize the bio controller with the current bio if available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileState = ref.read(userProfileProvider);
@@ -44,7 +42,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1080,
+      maxHeight: 1920,
+      imageQuality: 80,
+    );
+
     if (image != null) {
       await ref.read(userProfileProvider.notifier).addPhoto(File(image.path));
     }
@@ -69,16 +73,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           onPressed: () {
             // Save bio automatically on back
             if (_bioController.text.isNotEmpty) {
-              ref.read(userProfileProvider.notifier).updateBio(_bioController.text);
+              ref
+                  .read(userProfileProvider.notifier)
+                  .updateBio(_bioController.text);
             }
             context.pop();
           },
         ),
       ),
       body: profileState.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryColor),
-        ),
+        loading:
+            () => const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryColor),
+            ),
         error: (err, st) => Center(child: Text('Error: $err')),
         data: (profile) {
           return SingleChildScrollView(
@@ -161,15 +168,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             child: CachedNetworkImage(
                               imageUrl: profile.photoUrls[index],
                               fit: BoxFit.cover,
-                              placeholder: (context, url) => Shimmer.fromColors(
-                                baseColor: Colors.grey[300]!,
-                                highlightColor: Colors.grey[100]!,
-                                child: Container(color: Colors.white),
-                              ),
-                              errorWidget: (context, url, error) => const Icon(
-                                Icons.error_outline,
-                                color: AppTheme.textMuted,
-                              ),
+                              placeholder:
+                                  (context, url) => Shimmer.fromColors(
+                                    baseColor: Colors.grey[300]!,
+                                    highlightColor: Colors.grey[100]!,
+                                    child: Container(color: Colors.white),
+                                  ),
+                              errorWidget:
+                                  (context, url, error) => const Icon(
+                                    Icons.error_outline,
+                                    color: AppTheme.textMuted,
+                                  ),
                             ),
                           ),
                           // Remove Photo Button
@@ -177,9 +186,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             top: 4,
                             right: 4,
                             child: GestureDetector(
-                              onTap: () => ref
-                                  .read(userProfileProvider.notifier)
-                                  .removePhoto(index),
+                              onTap:
+                                  () => ref
+                                      .read(userProfileProvider.notifier)
+                                      .removePhoto(index),
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: const BoxDecoration(
@@ -201,9 +211,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               left: 0,
                               right: 0,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withValues(alpha: 0.9),
+                                  color: AppTheme.primaryColor.withValues(
+                                    alpha: 0.9,
+                                  ),
                                   borderRadius: const BorderRadius.vertical(
                                     bottom: Radius.circular(16),
                                   ),
@@ -225,13 +239,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               child: Material(
                                 color: Colors.transparent,
                                 child: InkWell(
-                                  onTap: () => ref
-                                      .read(userProfileProvider.notifier)
-                                      .setPrimaryPhoto(index),
+                                  onTap:
+                                      () => ref
+                                          .read(userProfileProvider.notifier)
+                                          .setPrimaryPhoto(index),
                                   borderRadius: BorderRadius.circular(16),
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: 0.2),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: const Center(
@@ -254,9 +271,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           decoration: BoxDecoration(
                             color: AppTheme.surfaceSolid,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: AppTheme.dividerColor,
-                            ),
+                            border: Border.all(color: AppTheme.dividerColor),
                           ),
                           child: const Icon(
                             Icons.add_a_photo_rounded,
